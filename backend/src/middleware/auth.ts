@@ -1,8 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../utils/jwt";
 import { User } from "../models/user";
+import { parse } from "cookie";
+
+
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {
-    const token = req.headers['authorization']?.split(' ')[1];
+    const cookies = parse(req.headers.cookie || '');
+    const token = cookies.authToken
     if (!token) {
         return res.status(403).json({ message: 'Access denied, token required' });
     }

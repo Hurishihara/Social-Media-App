@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import UserService from '../services/user.service'
+import { userCookie } from '../utils/cookie';
 
 class UserController {
     async registerUser(req: Request, res: Response): Promise<void> {
@@ -35,7 +36,13 @@ class UserController {
             
             try {
                 const { user, token } = await UserService.loginUser(email, password);
-                res.status(200).json({ message: `${user.username} logged in successfully`, user });
+                res.setHeader('Set-Cookie', userCookie(token))
+                res.status(200).json({ message: `${user.username} logged in successfully`, 
+                    username: user.username, 
+                    email: user.email, 
+                    bio: user.bio, 
+                    profile_picture: 
+                    user.profile_picture });
             }
             catch (error) {
                 if (error instanceof Error) {
