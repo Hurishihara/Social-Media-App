@@ -2,7 +2,7 @@ import { body } from "express-validator";
 import { db } from "../db/db";
 import { UsersTable } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from 'bcrypt';
+
 
 export const registerUserValidation = [
     body('username')
