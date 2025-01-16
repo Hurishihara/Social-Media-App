@@ -14,7 +14,6 @@ const RegisterPage = () => {
       </Card.Body>
       <Card.Body>
       <Stack gap='1rem' direction='column'>
-        <Input placeholder='Name' />
         <Input placeholder='Username' />
         <Input placeholder='Email' />
         <PasswordInput placeholder='Password' />

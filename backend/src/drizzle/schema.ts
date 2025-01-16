@@ -60,8 +60,12 @@ export const NotificationsTable = pgTable('notifications', {
 // Relations
 
 export const UsersTableRelations = relations(UsersTable, ({ many }) => ({
-    sender_friend_request: many(FriendshipsTable),
-    receiver_friend_request: many(FriendshipsTable),
+    sender_friend_request: many(FriendshipsTable, {
+        relationName: 'friendships_to_sender',
+    }),
+    receiver_friend_request: many(FriendshipsTable, {
+        relationName: 'friendships_to_receiver',
+    }),
     posts: many(PostsTable),
     likes: many(LikesTable),
     comment: many(CommentsTable),
@@ -71,11 +75,13 @@ export const UsersTableRelations = relations(UsersTable, ({ many }) => ({
 export const FriendshipsTableRelations = relations(FriendshipsTable, ({ one }) => ({
     sender: one(UsersTable, {
         fields: [FriendshipsTable.sender_id],
-        references: [UsersTable.id]
+        references: [UsersTable.id],
+        relationName: 'friendships_to_sender'
     }),
     receiver: one(UsersTable, {
         fields: [FriendshipsTable.receiver_id],
-        references: [UsersTable.id]
+        references: [UsersTable.id],
+        relationName: 'friendships_to_receiver'
     })
 }))
 

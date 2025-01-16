@@ -1,8 +1,16 @@
 import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
 import UserService from '../services/user.service'
 
 class UserController {
-    async registerUser(req: Request, res: Response) {
+    async registerUser(req: Request, res: Response): Promise<void> {
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.status(400).json({ message: errors.array()});
+            return;
+        }
+
         const { username, email, password } = req.body;
         try {
             await UserService.registerUser(username, email, password);
