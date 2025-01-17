@@ -4,9 +4,8 @@ import { User } from "../models/user";
 import { parse } from "cookie";
 
 
-export function authenticateToken(req: Request, res: Response, next: NextFunction) {
-    const cookies = parse(req.headers.cookie || '');
-    const token = cookies.authToken
+export function authenticateToken(req: Request, res: Response, next: NextFunction): Response | void {
+    const token = req.cookies.authToken || req.headers.authorization?.split(' ')[1];
     if (!token) {
         return res.status(403).json({ message: 'Access denied, token required' });
     }

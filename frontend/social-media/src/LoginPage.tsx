@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Box, 
   Card, 
   Flex, 
@@ -7,13 +8,32 @@ import { Box,
   Text,
   Link as ChakraLink
 } from "@chakra-ui/react"
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import { Button } from "./src/components/ui/button"
 import { PasswordInput } from "./src/components/ui/password-input"
+import { api } from "./utils/axiosConfig"
 
 
 const LoginPage = () => {
  
+  
+  const [ email, setEmail ] = useState<string>('')
+  const [ password, setPassword ] = useState<string>('')
+  const navigate = useNavigate()
+  const handleLogin = async (e: any): Promise<void> => {
+    e.preventDefault()
+
+    try {
+      const response = await api.post('/login', { email, password })
+      console.log(response.data.message)
+      navigate('/home')
+
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <Flex justifyContent='center' alignItems='center' h='90vh'>
     <Box w='400px'>
@@ -23,10 +43,12 @@ const LoginPage = () => {
       </Card.Body>
       <Card.Body>
       <Stack gap='1rem' direction='column'>
-        <Input placeholder='Username / Email' />
-        <PasswordInput placeholder='Password' />
-        <Button>Sign In</Button>
+        <form id='login-form' onSubmit={handleLogin} method='post'>
+          <Input placeholder='Username / Email' value={email} onChange={(e) => setEmail(e.target.value)} />
+          <PasswordInput placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} />
+        </form>
       </Stack>
+      <Button form='login-form' type='submit' mt='0.5rem'>Sign In</Button>
       </Card.Body>
       <Separator />
       <Card.Footer justifyContent='flex-start' fontSize='1.1rem'>
