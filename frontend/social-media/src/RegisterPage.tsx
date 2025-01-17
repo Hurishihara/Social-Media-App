@@ -1,5 +1,5 @@
 import { useState } from "react"
-import axios from "axios"
+import { api } from "./utils/axiosConfig"
 import { Box, Card, Flex, Input, Stack, } from "@chakra-ui/react"
 import { Button } from "./src/components/ui/button"
 import { PasswordInput } from "./src/components/ui/password-input"
@@ -7,7 +7,7 @@ import { PasswordInput } from "./src/components/ui/password-input"
 
 const RegisterPage = () => {
  
-  const api = 'https://localhost:3000/api/register'
+  
   const [ username, setUsername ] = useState<string>('')
   const [ email, setEmail ] = useState<string>('')
   const [ password, setPassword ] = useState<string>('')
@@ -16,7 +16,7 @@ const RegisterPage = () => {
     e.preventDefault()
 
     try {
-      const response = await axios.post(api, {username, email, password})
+      const response = await api.post('/register', {username, email, password})
       console.log(response.data.message)
     }
     catch (error) {
