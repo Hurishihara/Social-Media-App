@@ -2,6 +2,7 @@ import { Grid, GridItem } from '@chakra-ui/react';
 import CreatePost from './CreatePost';
 import FriendList from './FriendList';
 import Navbar from './subpages/Navbar'
+import PostsList from './PostsList';
 
 
 const HomePage = () => {
@@ -14,6 +15,7 @@ const HomePage = () => {
                 </GridItem>
                 <GridItem colSpan={4}>
                     <CreatePost />
+                    <PostsList />
                 </GridItem>
             </Grid>
         </>
