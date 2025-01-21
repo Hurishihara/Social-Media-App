@@ -53,6 +53,11 @@ class UserController {
                 }
             }
         }
+
+        async logoutUser(req: Request, res: Response): Promise<void> {
+            res.setHeader('Set-Cookie', await UserService.logoutUser());
+            res.status(200).json({ message: 'User logged out successfully' });
+        }
     }
 
 export default new UserController();

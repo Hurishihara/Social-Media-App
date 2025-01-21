@@ -2,6 +2,10 @@ import { body } from "express-validator";
 import { db } from "../db/db";
 import { UsersTable } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { Request, Response, NextFunction } from "express";
+import { parseCookies } from "../utils/cookie";
+import { verifyToken } from "../utils/jwt";
+import { User } from "../models/user";
 
 
 
@@ -57,3 +61,22 @@ export const loginUserValidation = [
         }
     })
 ]
+
+export const userAuthValidation = (req: Request, res: Response, next: NextFunction): void => {
+    const cookies = parseCookies(req);
+    const token = cookies.authToken;
+
+    if (!token) {
+         res.status(401).json({ message: 'Unauthorized' });
+         return;
+    }
+
+    try {
+        const decoded = verifyToken(token);
+        req.user = decoded as User;
+        next();
+    }
+    catch (error) {
+         res.status(401).json({ message: 'Unauthorized' });
+    }
+}

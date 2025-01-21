@@ -4,6 +4,7 @@ import { UsersTable } from "../drizzle/schema";
 import bcrypt from 'bcrypt';
 import { generateToken } from "../utils/jwt";
 import { User } from "../models/user";
+import { userCookie } from "../utils/cookie";
 
 class UserService {
     async registerUser(username: string, email: string, password: string): Promise<void> {
@@ -23,6 +24,10 @@ class UserService {
             throw new Error('Incorrect password');
         }
         return {user: user[0] as User, token: generateToken(user[0].id)}
+    }
+
+    async logoutUser () {
+        return userCookie(null, true);
     }
 }
 
