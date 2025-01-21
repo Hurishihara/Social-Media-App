@@ -5,8 +5,15 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import { IoPersonSharp } from "react-icons/io5";
 import { LuUserRoundSearch } from "react-icons/lu";
 import { InputGroup } from '@/src/components/ui/input-group';
+import { useNavigate } from 'react-router';
 
 const Navbar = () => {
+
+  const navigate = useNavigate()
+  const handleHomeButtonClick = () => {
+    navigate('/home')
+  }
+
   return (
     <>
         <Card.Root height='4rem' borderRadius='none'>
@@ -20,7 +27,7 @@ const Navbar = () => {
               </Box>
             </Flex>
             <Box>
-              <IconButton aria-label='Home' rounded='full' variant='ghost' size='md'>
+              <IconButton aria-label='Home' rounded='full' variant='ghost' size='md' onClick={handleHomeButtonClick}>
                 <TiHome />
               </IconButton>
             </Box>
