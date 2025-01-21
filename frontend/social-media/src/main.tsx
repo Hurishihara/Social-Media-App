@@ -20,9 +20,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path='/register' element={<RegisterPage />} />
           </Route>
           <Route element={<PrivateLayout />}>
-            <Route path='/home'>
-              <Route index element={<HomePage />} />
-            </Route>
+            <Route path='/home' element={<HomePage />} />
           </Route>
         </Routes>
         </AuthProviderWrapper>

@@ -4,14 +4,30 @@ import { LuMessageCircleMore } from "react-icons/lu";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { IoPersonSharp } from "react-icons/io5";
 import { LuUserRoundSearch } from "react-icons/lu";
+import { RiLogoutBoxRLine } from "react-icons/ri";
+import { LuSquareUserRound } from "react-icons/lu";
 import { InputGroup } from '@/src/components/ui/input-group';
 import { useNavigate } from 'react-router';
+import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/src/components/ui/menu';
+import { api } from '@/utils/axiosConfig';
 
 const Navbar = () => {
 
   const navigate = useNavigate()
+
   const handleHomeButtonClick = () => {
     navigate('/home')
+  }
+
+  const handleLogOut = async (): Promise<void> => {
+    try {
+      const response = await api.post('/logout')
+      navigate('/')
+      alert(response.data.message)
+    }
+    catch (error) {
+      console.log(error)
+    }
   }
 
   return (
@@ -38,9 +54,23 @@ const Navbar = () => {
               <IconButton aria-label='Notifications' rounded='full'  variant='ghost' size='md'>
                 <IoMdNotificationsOutline />
               </IconButton>
-              <IconButton aria-label='Profile' rounded='full'  variant='ghost' size='md'>
-                <IoPersonSharp />
-              </IconButton>
+              <MenuRoot>
+                <MenuTrigger asChild>
+                  <IconButton aria-label='Profile' rounded='full' variant='ghost' size='md'>
+                    <IoPersonSharp />
+                  </IconButton>
+                </MenuTrigger>
+                <MenuContent>
+                  <MenuItem value='profile'>
+                    <LuSquareUserRound />
+                    Profile
+                  </MenuItem>
+                  <MenuItem value="logout" onClick={handleLogOut}>
+                    <RiLogoutBoxRLine />
+                    Log Out
+                  </MenuItem>
+                </MenuContent>
+              </MenuRoot>
             </Flex>
           </Flex>
         </Card.Root>
@@ -49,3 +79,7 @@ const Navbar = () => {
 }
 
 export default Navbar
+
+//<IconButton aria-label='Profile' rounded='full'  variant='ghost' size='md'>
+               // <IoPersonSharp />
+             // </IconButton>
