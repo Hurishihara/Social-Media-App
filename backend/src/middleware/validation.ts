@@ -42,8 +42,8 @@ export const loginUserValidation = [
     body('email')
     .trim()
     .normalizeEmail()
-    .notEmpty().withMessage('Email cannot be empty')
-    .isEmail().withMessage('Invalid email format')
+    .notEmpty().withMessage('Email cannot be empty').bail()
+    .isEmail().withMessage('Invalid email format').bail()
     .custom(async value => {
         const checkExistingUserEmail = await db.select().from(UsersTable).where(eq(UsersTable.email, value))
         if (checkExistingUserEmail.length === 0) {
@@ -51,15 +51,7 @@ export const loginUserValidation = [
         }
     }),
     body('password')
-    .trim()
     .notEmpty().withMessage('Password cannot be empty')
-    .custom(async (value, { req } ) => {
-        const email = req.body.email;
-        const getPassword = await db.select().from(UsersTable).where(eq(UsersTable.email, email))
-        if (getPassword.length === 0) {
-            throw new Error('Password does not exist')
-        }
-    })
 ]
 
 export const userAuthValidation = (req: Request, res: Response, next: NextFunction): void => {
