@@ -12,6 +12,7 @@ import { Link, useNavigate } from "react-router"
 import { Button } from "./src/components/ui/button"
 import { PasswordInput } from "./src/components/ui/password-input"
 import { api } from "./utils/axiosConfig"
+import { useAuth } from "./AuthContext"
 
 
 const LoginPage = () => {
@@ -20,12 +21,15 @@ const LoginPage = () => {
   const [ email, setEmail ] = useState<string>('')
   const [ password, setPassword ] = useState<string>('')
   const navigate = useNavigate()
+  const { setIsAuthenticated } = useAuth()
+
   const handleLogin = async (e: any): Promise<void> => {
     e.preventDefault()
 
     try {
       const response = await api.post('/login', { email, password })
       console.log(response.data.message)
+      setIsAuthenticated(true)
       navigate('/home')
 
     }

@@ -8,6 +8,7 @@ router.post('/register', registerUserValidation, userController.registerUser)
 router.post('/login', loginUserValidation, userController.loginUser)
 router.post('/logout', userAuthValidation, userController.logoutUser)
 
+
 router.get('/check-auth', userAuthValidation,  (req, res) => {
     res.status(200).json({ message: 'Authenticated' });
 })
