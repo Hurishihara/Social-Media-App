@@ -23,3 +23,5 @@ class PostService {
         }).where(eq(PostsTable.id, postId))
     }
 }
+
+export default new PostService();
