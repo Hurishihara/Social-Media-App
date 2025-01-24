@@ -10,10 +10,12 @@ import { InputGroup } from '@/src/components/ui/input-group';
 import { useNavigate } from 'react-router';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/src/components/ui/menu';
 import { api } from '@/utils/axiosConfig';
+import { useUserStore } from '../../store/user.store';
 
 const Navbar = () => {
 
   const navigate = useNavigate()
+  const { userName } = useUserStore()
 
   const handleHomeButtonClick = () => {
     navigate('/home')
@@ -63,7 +65,7 @@ const Navbar = () => {
                 <MenuContent>
                   <MenuItem value='profile'>
                     <LuSquareUserRound />
-                    Profile
+                    {userName}
                   </MenuItem>
                   <MenuItem value="logout" onClick={handleLogOut}>
                     <RiLogoutBoxRLine />

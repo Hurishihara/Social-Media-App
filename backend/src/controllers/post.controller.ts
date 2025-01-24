@@ -17,8 +17,6 @@ class PostController {
 
             try {
                 const { userId, content } = req.body;
-                console.log('userId', userId)
-                console.log('content', content)
                 const imageUrl = req.file.path;
                 await PostService.createPost(userId, content, imageUrl);
                 res.status(201).json({ message: 'Post created' });

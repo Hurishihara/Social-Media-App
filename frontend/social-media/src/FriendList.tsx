@@ -3,6 +3,7 @@ import { IoPersonSharp } from "react-icons/io5"
 
 
 const FriendList = () => {
+    
     return (
         <>
         <Heading fontWeight='medium' size='lg' color='gray.600'>

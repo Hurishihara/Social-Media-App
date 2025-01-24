@@ -13,6 +13,7 @@ import { Button } from "./src/components/ui/button"
 import { PasswordInput } from "./src/components/ui/password-input"
 import { api } from "./utils/axiosConfig"
 import { useAuth } from "./AuthContext"
+import { useUserStore } from '../store/user.store'
 
 
 const LoginPage = () => {
@@ -20,15 +21,19 @@ const LoginPage = () => {
   
   const [ email, setEmail ] = useState<string>('')
   const [ password, setPassword ] = useState<string>('')
-  const navigate = useNavigate()
+  const { setUserId, setUserName } = useUserStore()
+  
   const { setIsAuthenticated } = useAuth()
+  const navigate = useNavigate()
+
 
   const handleLogin = async (e: any): Promise<void> => {
     e.preventDefault()
 
     try {
       const response = await api.post('/login', { email, password })
-      console.log(response.data.message)
+      setUserId(response.data.userId)
+      setUserName(response.data.userName)
       setIsAuthenticated(true)
       navigate('/home')
 
@@ -48,7 +53,7 @@ const LoginPage = () => {
       <Card.Body>
       <Stack gap='1rem' direction='column'>
         <form id='login-form' onSubmit={handleLogin} method='post'>
-          <Input placeholder='Username / Email' value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
           <PasswordInput placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} />
         </form>
       </Stack>

@@ -38,11 +38,8 @@ class UserController {
                 const { user, token } = await UserService.loginUser(email, password);
                 res.setHeader('Set-Cookie', userCookie(token))
                 res.status(200).json({ message: `${user.username} logged in successfully`, 
-                    username: user.username, 
-                    email: user.email, 
-                    bio: user.bio, 
-                    profile_picture: 
-                    user.profile_picture });
+                    userId: user.id, 
+                    userName: user.username });
             }
             catch (error) {
                 if (error instanceof Error) {
