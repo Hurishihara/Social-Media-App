@@ -1,9 +1,22 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "../db/db";
-import { PostsTable } from "../drizzle/schema";
+import { PostsTable, UsersTable } from "../drizzle/schema";
 
 
 class PostService {
+    async getPosts(): Promise<any[]> {
+        return await db.select({
+            postId: PostsTable.id,
+            content: PostsTable.content,
+            mediaURL: PostsTable.mediaURL,
+            likesCount: PostsTable.likes_count,
+            commentsCount: PostsTable.comments_count,
+            createdAt: PostsTable.created_at,
+            updatedAt: PostsTable.updated_at,
+            authorName: UsersTable.username
+        }).from(PostsTable).innerJoin(UsersTable, eq(PostsTable.author_id, UsersTable.id)).orderBy(desc(PostsTable.created_at))
+    }
+    
     async createPost(userId: number, content: string, image: string): Promise<void> {
         await db.insert(PostsTable).values({
             author_id: userId,

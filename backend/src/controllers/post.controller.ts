@@ -5,6 +5,16 @@ import { upload } from "../../multer.config";
 
 
 class PostController {
+    async getPosts(req: Request, res: Response): Promise<void> {
+        try {
+            const posts = await PostService.getPosts();
+            res.status(200).json(posts);
+        }
+        catch (err) {
+            console.error('Error getting posts', err)
+        }
+    }
+    
     async createPost(req: Request, res: Response): Promise<void> {
         upload.single('picture')(req, res, async (err) => {
             if (err) {
