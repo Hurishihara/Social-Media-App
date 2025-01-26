@@ -25,8 +25,10 @@ class PostService {
         })
     }
 
-    async deletePost(postId: number): Promise<void> {
-        await db.delete(PostsTable).where(eq(PostsTable.id, postId));
+    async deletePost(postId: number): Promise<any> {
+        const response: { deletedImageUrl: string | null }[] = await db.delete(PostsTable).where(eq(PostsTable.id, postId)).returning({ deletedImageUrl: PostsTable.mediaURL })
+        console.log('Post service response', response)
+        return response[0].deletedImageUrl
     }
 
     async updatePost(postId: number, content: string): Promise<void> {

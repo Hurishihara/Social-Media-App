@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-interface Post {
+export interface Post {
     postId: number
     content: string
     mediaURL: string

@@ -11,6 +11,8 @@ router.post('/login', loginUserValidation, userController.loginUser)
 router.post('/logout', userAuthValidation, userController.logoutUser)
 
 router.get('/posts', userAuthValidation, postController.getPosts)
+router.patch('/edit-post', userAuthValidation, postController.editPost)
+router.delete('/delete-post', userAuthValidation, postController.deletePost)
 
 router.get('/check-auth', userAuthValidation,  (req, res) => {
     res.status(200).json({ message: 'Authenticated' });

@@ -34,7 +34,7 @@ const Navbar = () => {
 
   return (
     <>
-        <Card.Root height='4rem' borderRadius='none'>
+        <Card.Root height='4rem' borderRadius='none' position='sticky' top='0' zIndex='1000'>
           <Flex justifyContent='space-between' alignItems='center' h='100%'  direction='row'>
             <Flex gap='3' alignItems='center' ml='1rem' >
               <Card.Title fontSize='1.3rem'>Social Media App</Card.Title>
@@ -81,7 +81,3 @@ const Navbar = () => {
 }
 
 export default Navbar
-
-//<IconButton aria-label='Profile' rounded='full'  variant='ghost' size='md'>
-               // <IoPersonSharp />
-             // </IconButton>
