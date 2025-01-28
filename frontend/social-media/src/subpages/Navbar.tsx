@@ -11,11 +11,13 @@ import { useNavigate } from 'react-router';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/src/components/ui/menu';
 import { api } from '@/utils/axiosConfig';
 import { useUserStore } from '../../store/user.store';
+import { usePostStore } from '../../store/post.store';
 
 const Navbar = () => {
 
   const navigate = useNavigate()
-  const { userName } = useUserStore()
+  const { userName, clearUser } = useUserStore()
+  const { clearPosts } = usePostStore()
 
   const handleHomeButtonClick = () => {
     navigate('/home')
@@ -25,6 +27,8 @@ const Navbar = () => {
     try {
       const response = await api.post('/logout')
       navigate('/')
+      clearUser()
+      clearPosts()
       alert(response.data.message)
     }
     catch (error) {

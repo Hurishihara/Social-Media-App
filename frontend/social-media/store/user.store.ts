@@ -6,6 +6,7 @@ interface UserStore {
     userName: string | null
     setUserId: (id: number) => void
     setUserName: (name: string) => void
+    clearUser: () => void
 }
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -19,4 +20,9 @@ export const useUserStore = create<UserStore>((set) => ({
         set({ userName: name })
         localStorage.setItem('userName', JSON.stringify(name))
     },
+    clearUser: () => {
+        set({ userId: null, userName: null })
+        localStorage.removeItem('userId')
+        localStorage.removeItem('userName')
+    }
 }))

@@ -9,6 +9,7 @@ class PostController {
     async getPosts(req: Request, res: Response): Promise<void> {
         try {
             const posts = await PostService.getPosts();
+            console.log(posts)
             res.status(200).json(posts);
         }
         catch (err) {

@@ -1,14 +1,18 @@
 import { create } from 'zustand'
 
 export interface Post {
+   post: {
     postId: number
     content: string
     mediaURL: string
     likesCount: number
     commentsCount: number
-    createdAt: Date
-    updatedAt: Date
-    authorName: string
+    createdAt: string
+    updatedAt: string
+   };
+   authorName: string
+   isLiked: boolean
+   likes: any[]
 }
 
 interface PostStore {
@@ -18,7 +22,10 @@ interface PostStore {
 }
 
 export const usePostStore = create<PostStore>((set) => ({
-    posts: JSON.parse(localStorage.getItem('posts') || '[]'),
+    posts: JSON.parse(localStorage.getItem('posts') || '[]').map((post: Post) => ({
+        ...post,
+        isLiked: false
+    })),
     setPosts: (posts: Post[]) => {
         set({ posts })
         localStorage.setItem('posts', JSON.stringify(posts))
