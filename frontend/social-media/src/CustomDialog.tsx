@@ -21,7 +21,7 @@ import { Post } from '../store/post.store'
 
 const CustomDialog = ({ post, open, setOpen }: { post: Post, open: boolean, setOpen: any  }) => {
     
-    const [editedContent, setEditedContent] = useState<string>(post.content)
+    const [editedContent, setEditedContent] = useState<string>(post.post.content)
 
 
     const handleSubmit = async (e: any) => {
@@ -29,7 +29,7 @@ const CustomDialog = ({ post, open, setOpen }: { post: Post, open: boolean, setO
         
         try {
             const response = await api.patch('/edit-post', {
-                postId: post.postId,
+                postId: post.post.postId,
                 content: editedContent
             })
             console.log(response.data)
@@ -59,7 +59,7 @@ const CustomDialog = ({ post, open, setOpen }: { post: Post, open: boolean, setO
                         </Stack>
                     </DialogHeader>
                     <DialogBody>
-                        <Editable.Root defaultValue={post.content} value={editedContent} onValueChange={(e: any) => setEditedContent(e.value)}>
+                        <Editable.Root defaultValue={post.post.content} value={editedContent} onValueChange={(e: any) => setEditedContent(e.value)}>
                             <Editable.Preview alignItems='flex-start' minH='5rem' w='full' />
                             <Editable.Textarea h='5rem' borderStyle='none' placeholder={`What's on your mind, ${post.authorName}?`} />
                             <Editable.CancelTrigger asChild ml='1rem'>

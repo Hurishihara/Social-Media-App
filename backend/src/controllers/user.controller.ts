@@ -40,7 +40,9 @@ class UserController {
                 res.setHeader('Set-Cookie', userCookie(token))
                 res.status(200).json({ message: `${user.username} logged in successfully`, 
                     userId: user.id, 
-                    userName: user.username });
+                    userName: user.username,
+                    bio: user.bio,
+                    profilePicture: user.profile_picture});
             }
             catch (error) {
                 if (error instanceof Error) {
@@ -66,6 +68,10 @@ class UserController {
                 try {
                     const { userId, username, bio } = req.body;
                     const profilePictureUrl = req.file ? req.file.path : '';
+                    console.log('profilePictureUrl', profilePictureUrl)
+                    console.log('userId', userId)
+                    console.log('username', username)
+                    console.log('bio', bio)
                     await UserService.updateUser(userId, username, profilePictureUrl, bio);
                     res.status(200).json({ message: 'User updated' });
                 }

@@ -21,7 +21,7 @@ const LoginPage = () => {
   
   const [ email, setEmail ] = useState<string>('')
   const [ password, setPassword ] = useState<string>('')
-  const { setUserId, setUserName } = useUserStore()
+  const { setUserId, setUserName, setProfilePicture, setBio } = useUserStore()
   
   const { setIsAuthenticated } = useAuth()
   const navigate = useNavigate()
@@ -34,6 +34,8 @@ const LoginPage = () => {
       const response = await api.post('/login', { email, password })
       setUserId(response.data.userId)
       setUserName(response.data.userName)
+      setProfilePicture(response.data.profilePicture)
+      setBio(response.data.bio)
       setIsAuthenticated(true)
       navigate('/home')
 

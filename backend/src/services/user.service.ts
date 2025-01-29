@@ -36,22 +36,22 @@ class UserService {
                 username: username,
                 profile_picture: profilePicture,
                 bio: bio
-            })
+            }).where(eq(UsersTable.id, userId))
         }
         else if (username) {
             await db.update(UsersTable).set({
                 username: username
-            })
+            }).where(eq(UsersTable.id, userId))
         }
         else if (profilePicture) {
             await db.update(UsersTable).set({
                 profile_picture: profilePicture
-            })
+            }).where(eq(UsersTable.id, userId))
         }
         else if (bio) {
             await db.update(UsersTable).set({
                 bio: bio
-            })
+            }).where(eq(UsersTable.id, userId))
         }
     }
 }
