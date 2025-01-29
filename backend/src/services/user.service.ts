@@ -29,6 +29,31 @@ class UserService {
     async logoutUser () {
         return userCookie(null, true);
     }
+
+    async updateUser(userId: number, username: string, profilePicture: string, bio: string): Promise<void> {
+        if (username && profilePicture && bio) {
+            await db.update(UsersTable).set({
+                username: username,
+                profile_picture: profilePicture,
+                bio: bio
+            })
+        }
+        else if (username) {
+            await db.update(UsersTable).set({
+                username: username
+            })
+        }
+        else if (profilePicture) {
+            await db.update(UsersTable).set({
+                profile_picture: profilePicture
+            })
+        }
+        else if (bio) {
+            await db.update(UsersTable).set({
+                bio: bio
+            })
+        }
+    }
 }
 
 export default new UserService();

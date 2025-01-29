@@ -8,6 +8,7 @@ import LoginPage from './LoginPage.tsx'
 import HomePage from './HomePage.tsx'
 import { PrivateLayout } from './layouts/PrivateLayout.tsx'
 import { AuthProviderWrapper } from './AuthProviderWrapper.tsx'
+import ProfilePage from './ProfilePage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -21,6 +22,7 @@ createRoot(document.getElementById('root')!).render(
           </Route>
           <Route element={<PrivateLayout />}>
             <Route path='/home' element={<HomePage />} />
+            <Route path='/profile' element={<ProfilePage />} />
           </Route>
         </Routes>
         </AuthProviderWrapper>

@@ -8,8 +8,9 @@ import cloudinary, { extractPublicId } from "../db/cloudinary";
 class PostController {
     async getPosts(req: Request, res: Response): Promise<void> {
         try {
-            const posts = await PostService.getPosts();
-            console.log(posts)
+            const { userName } = req.query;
+            console.log('userName', userName)
+            const posts = await PostService.getPosts(userName as string);
             res.status(200).json(posts);
         }
         catch (err) {
@@ -23,13 +24,9 @@ class PostController {
                 console.error('Upload error', err)
                 return res.status(500).json({ message: 'Error uploading image' });
             }
-            if (!req.file) {
-                return res.status(400).json({ message: 'No image uploaded' });
-            }
-
             try {
                 const { userId, content } = req.body;
-                const imageUrl = req.file.path;
+                const imageUrl = req.file ? req.file.path : '';
                 await PostService.createPost(userId, content, imageUrl);
                 res.status(201).json({ message: 'Post created' });
             }

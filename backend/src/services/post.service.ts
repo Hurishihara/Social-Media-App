@@ -16,7 +16,56 @@ interface Post {
 }
 
 class PostService {
-    async getPosts(): Promise<any[]> {
+    async getPosts(userName: string): Promise<any[]> {
+        if (!userName) {
+            const result = await db.select({
+                post: PostsTable,
+                authorName: UsersTable.username,
+                likes: LikesTable
+            })
+            .from(PostsTable)
+            .innerJoin(UsersTable, eq(PostsTable.author_id, UsersTable.id))
+            .leftJoin(LikesTable, eq(PostsTable.id, LikesTable.post_id))
+            .orderBy(desc(PostsTable.created_at))
+            
+            const posts = result.reduce<Record<number, { post: Post, authorName: string, likes: any[] }>>(
+                (acc, row) => {
+                    const post = row.post
+                    const like = row.likes
+                    const authorName = row.authorName
+        
+                    if (!acc[post.id]) {
+                        acc[post.id] = {
+                            post: {
+                                postId: post.id,
+                                content: post.content,
+                                mediaURL: post.mediaURL,
+                                likesCount: post.likes_count,
+                                commentsCount: post.comments_count,
+                                createdAt: post.created_at,
+                                updatedAt: post.updated_at
+                            },
+                            authorName,
+                            likes: []
+                        }
+                    }
+                    if (like) {
+                        acc[post.id].likes.push({
+                            likeId: like.id,
+                            userId: like.user_id,
+                            createdAt: like.created_at
+                        })
+                    }
+                    return acc
+                }, 
+               {})
+            const sortedPosts = Object.values(posts).sort((a, b) => {
+                return b.post.createdAt.getTime() - a.post.createdAt.getTime()
+            })
+            return sortedPosts;
+
+        }
+        
         const result = await db.select({
             post: PostsTable,
             authorName: UsersTable.username,
@@ -26,6 +75,7 @@ class PostService {
         .innerJoin(UsersTable, eq(PostsTable.author_id, UsersTable.id))
         .leftJoin(LikesTable, eq(PostsTable.id, LikesTable.post_id))
         .orderBy(desc(PostsTable.created_at))
+        .where(eq(UsersTable.username, userName))
 
         const posts = result.reduce<Record<number, { post: Post, authorName: string, likes: any[] }>>(
             (acc, row) => {

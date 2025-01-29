@@ -36,6 +36,10 @@ const Navbar = () => {
     }
   }
 
+  const handleProfileClick = () => {
+    navigate('/profile')
+  }
+
   return (
     <>
         <Card.Root height='4rem' borderRadius='none' position='sticky' top='0' zIndex='1000'>
@@ -67,7 +71,7 @@ const Navbar = () => {
                   </IconButton>
                 </MenuTrigger>
                 <MenuContent>
-                  <MenuItem value='profile'>
+                  <MenuItem value='profile' onClick={handleProfileClick} >
                     <LuSquareUserRound />
                     {userName}
                   </MenuItem>

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import UserService from '../services/user.service'
 import { userCookie } from '../utils/cookie';
+import { upload } from '../../multer.config';
 
 class UserController {
     async registerUser(req: Request, res: Response): Promise<void> {
@@ -54,6 +55,25 @@ class UserController {
         async logoutUser(req: Request, res: Response): Promise<void> {
             res.setHeader('Set-Cookie', await UserService.logoutUser());
             res.status(200).json({ message: 'User logged out successfully' });
+        }
+
+        async updateUser(req: Request, res: Response): Promise<void> {
+            upload.single('profilePicture')(req, res, async (err) => {
+                if (err) {
+                    console.error('Upload error', err)
+                    return res.status(500).json({ message: 'Error uploading image' });
+                }
+                try {
+                    const { userId, username, bio } = req.body;
+                    const profilePictureUrl = req.file ? req.file.path : '';
+                    await UserService.updateUser(userId, username, profilePictureUrl, bio);
+                    res.status(200).json({ message: 'User updated' });
+                }
+                catch (err) {
+                    console.error('Error updating user', err)
+                    res.status(500).json({ message: 'Error updating user' });
+                }
+             })
         }
     }
 

@@ -16,7 +16,17 @@ import { Post, usePostStore } from '../store/post.store'
 import CustomDialog from './CustomDialog';
 import { useUserStore } from '../store/user.store';
 
-const PostsList = () => {
+
+
+
+interface PostsListProps {
+    userNameFilter: string | undefined
+}
+
+
+
+
+const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
     
     const { posts, setPosts } = usePostStore()
     const { userId } = useUserStore()
@@ -73,9 +83,11 @@ const PostsList = () => {
     }
 
     useEffect(() => {
-        const fetchPosts = async () => {
+        const fetchPosts = async (userNameFilter?: string) => {
             try {
-                const response = await api.get('/posts')
+                const response = await api.get('/posts', {
+                    params: userNameFilter ? { userName: userNameFilter } : {}
+                })
                 const updatedPosts = response.data.map((post: Post) => ({
                     ...post,
                     isLiked: post.likes.some((like: any) => like.userId === userId) ? true : false
@@ -87,8 +99,8 @@ const PostsList = () => {
             }
             console.log(posts)
         }
-        fetchPosts()
-    }, [])
+        fetchPosts(userNameFilter)
+    }, [userNameFilter])
 
     const formatDate = (dateString: string): string => {
         const date = new Date(dateString)

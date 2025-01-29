@@ -19,15 +19,19 @@ import React, { useState } from 'react'
 import { IoPersonSharp } from 'react-icons/io5'
 import { FaRegImages } from "react-icons/fa";
 import { api } from './utils/axiosConfig'
+import { useUserStore } from '../store/user.store'
 
 
+interface CreatePostProps {
+    createPostButtonSize: string
+}
 
 
-
-const CreatePost = () => {
+const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
     
-    const [userId, setUserId] = useState<number>(4)
+    const { userName, userId } = useUserStore()
     const [content, setContent] = useState<string>('')
+
 
     const fileUpload = useFileUpload({
         maxFiles: 1,
@@ -36,8 +40,6 @@ const CreatePost = () => {
     })
 
     const accepted = fileUpload.acceptedFiles.map((file) => file.name)
-    const rejected = fileUpload.rejectedFiles.map((e) => e.file.name)
-    
 
     const handleClearFile = () => {
         fileUpload.clearFiles()
@@ -79,7 +81,7 @@ const CreatePost = () => {
                         <form id='create-post' method='post' onSubmit={handleCreatePost} encType='multipart/form-data'>
                         <DialogRoot size='md' placement='center'>
                             <DialogTrigger asChild>
-                                <Button borderRadius='3rem' w='29rem' size='md' variant='subtle'>
+                                <Button borderRadius='3rem' w={!createPostButtonSize ? '29rem' : createPostButtonSize} size='md' variant='subtle' color='gray.500'>
                                     Create a new post...
                                 </Button>
                             </DialogTrigger>
@@ -99,7 +101,7 @@ const CreatePost = () => {
                                     </Stack>
                                 </DialogHeader>
                                 <DialogBody>
-                                    <Textarea value={content} onChange={(e) => setContent(e.target.value)} autoresize maxH='20lh' size='xl' borderStyle='none' placeholder="What's up, Sebastian?" />
+                                    <Textarea value={content} onChange={(e) => setContent(e.target.value)} autoresize maxH='20lh' size='xl' borderStyle='none' placeholder={`What's up, ${userName}?`} />
                                     <Card.Root mt='1rem' size='sm'>
                                        <Stack direction='row' align='center'>
                                         <Card.Body fontWeight='medium'>
@@ -143,7 +145,4 @@ const CreatePost = () => {
 }
 
 export default CreatePost
-//<Button borderRadius='3rem' w='30rem' variant='subtle' >
-  //                          Create a new post...
-    //                    </Button>
     
