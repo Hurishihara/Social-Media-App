@@ -5,6 +5,7 @@ import {
     MenuRoot,
     MenuTrigger,
   } from './src/components/ui/menu'
+  import { Avatar } from './src/components/ui/avatar'
 import React, { useEffect, useState }from 'react'
 import { IoPersonSharp } from 'react-icons/io5'
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
@@ -29,8 +30,7 @@ interface PostsListProps {
 const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
     
     const { posts, setPosts } = usePostStore()
-    const { userId } = useUserStore()
-    const { userName } = useUserStore()
+    const { userId, userName, profilePicture } = useUserStore()
     const [ selectedPost, setSelectedPost ] = useState(null)
     const [ open, setOpen ] = useState<Boolean>(false)
 
@@ -125,9 +125,7 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
                         <Card.Body>
                             <Flex justifyContent='space-between'>
                                 <Stack direction='row' gap='3' align='center' mb='2rem'>
-                                    <Icon>
-                                        <IoPersonSharp />
-                                    </Icon>
+                                    <Avatar name={post.authorName} src={post.authorProfilePicture} />
                                 <Stack direction='column' align='flex-start' justify='center' gap='0'>
                                     <Card.Title>{ post.authorName }</Card.Title>
                                     <Text color='gray' fontSize='0.8rem' fontWeight='medium'> { formatDate(post.post.createdAt) } </Text>

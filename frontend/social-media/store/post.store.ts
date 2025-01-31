@@ -11,6 +11,7 @@ export interface Post {
     updatedAt: string
    };
    authorName: string
+   authorProfilePicture: string
    isLiked: boolean
    likes: any[]
 }

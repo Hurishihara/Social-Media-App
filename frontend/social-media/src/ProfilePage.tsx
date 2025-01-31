@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Navbar from './subpages/Navbar'
 import { Button, Card, Grid, GridItem, Image, Stack, Box, Flex, Icon, Separator, Text, FileUploadRootProvider, useFileUpload, FileUploadHiddenInput, useEditable, Editable, IconButton} from '@chakra-ui/react'
 import {
@@ -75,7 +75,6 @@ const ProfilePage = () => {
             console.error(err)
         }
     }
-
 
 
     return (

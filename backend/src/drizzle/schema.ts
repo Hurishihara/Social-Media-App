@@ -1,5 +1,5 @@
-import { relations } from "drizzle-orm"
-import { integer, pgTable, serial, text, timestamp, unique, varchar, boolean } from "drizzle-orm/pg-core"
+import { relations, sql } from "drizzle-orm"
+import { integer, pgTable, serial, text, timestamp, unique, varchar, boolean, index } from "drizzle-orm/pg-core"
 
 export const UsersTable = pgTable('users', {
     id: serial('id').primaryKey(),
@@ -8,9 +8,12 @@ export const UsersTable = pgTable('users', {
     password: varchar('password', { length: 255 }).notNull().unique(),
     bio: text('bio'),
     profile_picture: text('profile_picture'),
-    blocked_users: integer('blocked_users').array(),
     created_at: timestamp('created_at').defaultNow().notNull(),
-})
+    search_vector: text('search_vector')
+    
+}, (table) => ({
+    userNameSearchIndex: index('username_search_index').using('gin', sql`to_tsvector('english', ${table.username})`)
+}))
 
 export const FriendshipsTable = pgTable('friendships', {
     id: serial('id').primaryKey(),

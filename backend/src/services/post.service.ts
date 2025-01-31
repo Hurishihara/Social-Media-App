@@ -21,6 +21,7 @@ class PostService {
             const result = await db.select({
                 post: PostsTable,
                 authorName: UsersTable.username,
+                authorProfilePicture: UsersTable.profile_picture,
                 likes: LikesTable
             })
             .from(PostsTable)
@@ -28,7 +29,7 @@ class PostService {
             .leftJoin(LikesTable, eq(PostsTable.id, LikesTable.post_id))
             .orderBy(desc(PostsTable.created_at))
             
-            const posts = result.reduce<Record<number, { post: Post, authorName: string, likes: any[] }>>(
+            const posts = result.reduce<Record<number, { post: Post, authorName: string, likes: any[], authorProfilePicture: string | null }>>(
                 (acc, row) => {
                     const post = row.post
                     const like = row.likes
@@ -46,7 +47,8 @@ class PostService {
                                 updatedAt: post.updated_at
                             },
                             authorName,
-                            likes: []
+                            likes: [],
+                            authorProfilePicture: row.authorProfilePicture
                         }
                     }
                     if (like) {
@@ -69,6 +71,7 @@ class PostService {
         const result = await db.select({
             post: PostsTable,
             authorName: UsersTable.username,
+            authorProfilePicture: UsersTable.profile_picture,
             likes: LikesTable
         })
         .from(PostsTable)
@@ -77,7 +80,7 @@ class PostService {
         .orderBy(desc(PostsTable.created_at))
         .where(eq(UsersTable.username, userName))
 
-        const posts = result.reduce<Record<number, { post: Post, authorName: string, likes: any[] }>>(
+        const posts = result.reduce<Record<number, { post: Post, authorName: string, likes: any[], authorProfilePicture: string | null }>>(
             (acc, row) => {
                 const post = row.post
                 const like = row.likes
@@ -95,7 +98,8 @@ class PostService {
                             updatedAt: post.updated_at
                         },
                         authorName,
-                        likes: []
+                        likes: [],
+                        authorProfilePicture: row.authorProfilePicture
                     }
                 }
                 if (like) {

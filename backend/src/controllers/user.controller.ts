@@ -81,6 +81,16 @@ class UserController {
                 }
              })
         }
+        async searchUser(query: string): Promise<any[]> {
+            try {
+                const users = await UserService.searchUser(query);
+                return users;
+            }
+            catch (err) {
+                console.error('Error searching for users', err);
+                return [];
+            }
+        }
     }
 
 export default new UserController();

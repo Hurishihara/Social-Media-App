@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "../db/db";
 import { UsersTable } from "../drizzle/schema";
 import bcrypt from 'bcrypt';
@@ -53,6 +53,22 @@ class UserService {
                 bio: bio
             }).where(eq(UsersTable.id, userId))
         }
+    }
+
+    async searchUser(query: string): Promise<User[]> {
+        if (!query) {
+            return [];
+        }
+        const users = await db.select().from(UsersTable).where(sql`to_tsvector('english', ${UsersTable.username}) @@ to_tsquery('english', ${query})`);
+        return users.map(user => ({
+            id: user.id,
+            username: user.username,
+            email: '',
+            password: '',
+            bio: '',
+            profile_picture: user.profile_picture,
+            created_at: new Date()
+        }) as User)
     }
 }
 
