@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-interface Notification {
+export interface Notification {
     createdAt: string
     has_seen: boolean
     id: number
@@ -16,19 +16,21 @@ interface Notification {
 }
 
 interface NotificationStore {
-    notifications: Notification[]
-    setNotifications: (notifications: Notification[]) => void
+    userNotifications: Notification[]
+    setUserNotifications: (notifications: Notification[]) => void
     clearNotifications: () => void
 }
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
-    notifications: JSON.parse(localStorage.getItem('notifications') || '[]'),
-    setNotifications: (notifications: Notification[]) => {
-        set({ notifications })
-        localStorage.setItem('notifications', JSON.stringify(notifications))
+    userNotifications: JSON.parse(localStorage.getItem('notifications') || '[]'),
+    setUserNotifications: (newNotifications: Notification[]) => {
+        set(() => {
+            localStorage.setItem('notifications', JSON.stringify(newNotifications))
+            return { userNotifications: newNotifications}
+        })
     },
     clearNotifications: () => {
-        set({ notifications: [] })
+        set({ userNotifications: [] })
         localStorage.removeItem('notifications')
     }
 }))

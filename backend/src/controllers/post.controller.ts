@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import PostService from '../services/post.service'
-//import { uploadImage } from "../middleware/upload";
 import { upload } from "../../multer.config";
 import cloudinary, { extractPublicId } from "../db/cloudinary";
 import { io } from "../../server";
@@ -29,8 +28,7 @@ class PostController {
                 const { userId, content } = req.body;
                 const imageUrl = req.file ? req.file.path : '';
                 const newPost = await PostService.createPost(userId, content, imageUrl);
-                console.log('newPost', newPost)
-                io.emit('new-post', newPost);
+                io.emit('new-post', newPost[0]);
                 res.status(201).json({ message: 'Post created' });
             }
             catch (err) {

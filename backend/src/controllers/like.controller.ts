@@ -12,12 +12,15 @@ class LikeController {
             const response = await likeService.likePost(userId, postId);
             const authorSocketId = userSockets[author];
             if (authorSocketId) {
-                io.to(authorSocketId).emit('like-notification', await notificationService.createNotification('like', author, userId, postId))
+                const notification = await notificationService.createNotification('like', author, userId, postId)
+                io.to(authorSocketId).emit('like-notification', notification[0])
             }
             if (response.message === 'Post already liked') {
                 await likeService.unlikePost(userId, postId);
                 console.log('Emitting unlike-notification for user:', userId, 'on post:', postId);
-                io.to(authorSocketId).emit('unlike-notification', await notificationService.deleteNotification(userId))
+                const notification = await notificationService.deleteNotification(userId)
+                console.log('Notification:', notification)
+                io.to(authorSocketId).emit('unlike-notification', notification)
                 res.status(200).json({ message: 'Post unliked' });
             }
             else {

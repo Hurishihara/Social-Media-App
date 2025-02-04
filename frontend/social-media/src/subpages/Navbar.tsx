@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Flex, Input, Box, Stack, IconButton, Icon, Spinner, useMenu, MenuContextTrigger, Button, Image, } from '@chakra-ui/react'
+import { Card, Flex, Input, Box, Stack, IconButton, Icon, Spinner, useMenu, MenuContextTrigger, Button, Image, Float, Circle } from '@chakra-ui/react'
 import { Avatar } from '../src/components/ui/avatar';
 import { TiHome } from 'react-icons/ti'
 import { LuMessageCircleMore } from "react-icons/lu";
@@ -15,7 +15,7 @@ import { api } from '@/utils/axiosConfig';
 import { socket } from '../utils/socket.io'
 import { useUserStore } from '../../store/user.store';
 import { usePostStore } from '../../store/post.store';
-import { useNotificationStore } from '../../store/notification.store';
+import { useNotificationStore, Notification } from '../../store/notification.store';
 
 const Navbar = () => {
 
@@ -27,7 +27,7 @@ const Navbar = () => {
   const navigate = useNavigate()
   const { userName, userId, profilePicture, clearUser } = useUserStore()
   const { clearPosts } = usePostStore()
-  const { notifications, setNotifications, clearNotifications } = useNotificationStore()
+  const { userNotifications, setUserNotifications, clearNotifications } = useNotificationStore()
  
 
   const handleHomeButtonClick = () => {
@@ -36,6 +36,7 @@ const Navbar = () => {
 
   const handleLogOut = async (): Promise<void> => {
     try {
+      socket.disconnect()
       const response = await api.post('/logout')
       navigate('/')
       clearUser()
@@ -50,6 +51,20 @@ const Navbar = () => {
 
   useEffect(() => {
 
+    const fetchNotifications = async (userIdFilter?: number) => {
+      try {
+        const response = await api.get('/notifications', {
+          params: userIdFilter ? { userId: userIdFilter } : {}
+        })
+        console.log('fetch notifications', response.data)
+        setUserNotifications(response.data)
+      }
+      catch (err) {
+        console.log(err)
+      }
+    }
+    fetchNotifications(userId ?? undefined)
+
     if (userId) {
       socket.emit('join-room', userId)
     }
@@ -59,21 +74,29 @@ const Navbar = () => {
       console.log('data', data)
     })
     socket.on('like-notification', (data) => {
-      console.log(data)
-      setNotifications(data)
+      console.log('like data', data)
+      console.log('check userNotifications', useNotificationStore.getState().userNotifications.length)
+      const currentNotification = useNotificationStore.getState().userNotifications
+      const updatedNotifications = [data, ...currentNotification]
+      setUserNotifications(updatedNotifications)
     })
     socket.on('unlike-notification', (data) => {
-      console.log('unlike data', data)
-      const updatedNotifications = notifications.filter((notifications: any) => notifications.sender_id !== data.senderId && notifications.related_post_id !== data.postId)
-      setNotifications(updatedNotifications)
+      console.log('unlike data', data.postId)
+      const currentNotification = useNotificationStore.getState().userNotifications
+      const updatedNotifications = currentNotification.filter(notification => !(notification.related_post_id === data.postId && notification.sender_id === data.senderId))
+      setUserNotifications(updatedNotifications)
     })
+
+    if (userId && !socket.connected) {
+      socket.connect()
+    }
 
     return () => {
       socket.off('searchResults')
       socket.off('like-notification')
       socket.off('unlike-notification')
     }
-  }, [])
+  }, [userId])
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -145,12 +168,21 @@ const Navbar = () => {
               </IconButton>
               <MenuRoot>
                 <MenuTrigger asChild>
-                  <IconButton aria-label='Notifications' rounded='full'  variant='ghost' size='md'>
-                    <IoMdNotificationsOutline />
+                  <IconButton aria-label='Notifications' rounded='full'  variant='ghost' size='md' fontSize='0.6rem'>
+                    <Box position='relative'>
+                      <IoMdNotificationsOutline />
+                      {userNotifications.length > 0 && (
+                        <Float placement='top-end'>
+                        <Circle  bg='red' size='3.5' color='white'>
+                          {userNotifications.length}
+                        </Circle>
+                        </Float>
+                      )}
+                    </Box>
                   </IconButton>
                 </MenuTrigger>
                 <MenuContent>
-                  {notifications.length > 0 ? notifications.map((notification, index) => (
+                  {userNotifications.length > 0 ? userNotifications.map((notification, index) => (
                     <MenuItem key={index} value={notification.senderUserName} >
                       <Avatar name={notification.senderUserName} src={notification.senderProfilePicture} />
                       {notification.notificationText}

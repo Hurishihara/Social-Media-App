@@ -4,15 +4,21 @@ export const userSockets: Record<string, string> = {};
 
 export function handleUserConnection(socket: Socket) {
     socket.on('join-room', (userId: string) => {
-        userSockets[userId] = socket.id; 
+        if (userSockets[userId]) {
+            const oldSocketId = userSockets[userId];
+            delete userSockets[userId];
+            socket.to(oldSocketId).disconnectSockets(true)
+        }
+        userSockets[userId] = socket.id;
+        console.log(`User ${userId} connected with socket ${socket.id}`);
     })
 
     socket.on('disconnect', () => {
-        for (const userId in userSockets) {
-            if (userSockets[userId] === socket.id) {
-                delete userSockets[userId];
-                break;
+        Object.entries(userSockets).forEach(([key, value]) => {
+            if (value === socket.id) {
+                delete userSockets[key];
+                console.log(`User ${key} disconnected`);
             }
-        }
+        })
     })
 }

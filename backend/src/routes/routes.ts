@@ -3,6 +3,7 @@ import userController from '../controllers/user.controller';
 import { loginUserValidation, registerUserValidation, userAuthValidation } from '../middleware/validation';
 import postController from '../controllers/post.controller';
 import likeController from '../controllers/like.controller';
+import notificationController from '../controllers/notification.controller';
 
 const router = express.Router();
 
@@ -14,8 +15,7 @@ router.post('/logout', userAuthValidation, userController.logoutUser)
 router.post('/like-post', userAuthValidation, likeController.LikePost)
 
 router.get('/posts', userAuthValidation, postController.getPosts)
-
-router.post('/like-post', userAuthValidation, likeController.LikePost)
+router.get('/notifications', userAuthValidation, notificationController.getNotifications)
 
 router.patch('/edit-post', userAuthValidation, postController.editPost)
 router.delete('/delete-post', userAuthValidation, postController.deletePost)

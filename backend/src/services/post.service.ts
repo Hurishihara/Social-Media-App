@@ -13,7 +13,7 @@ interface Post {
 }
 
 class PostService {
-    async getPosts(userName: string): Promise<any[]> {
+    async getPosts(userName?: string): Promise<any[]> {
         if (!userName) {
             const result = await db.select({
                 post: PostsTable,

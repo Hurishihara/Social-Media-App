@@ -54,6 +54,7 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
             return post
         })
         setPosts(updatedPost)
+        console.log('updatedPost', updatedPost)
         
         try {
             const likedPost = updatedPost.find(post => post.post.postId === postId)
@@ -105,6 +106,7 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
 
         socket.on('new-post', (newPost: Post) => {
             setPosts([newPost, ...posts])
+            
         })
 
         socket.on('delete-post', (postId: number) => {
@@ -112,11 +114,11 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
             setPosts(updatedPosts)
         })
 
-        socket.on('get-notifications', (notification: any) => {
-            console.log('notification', notification)
-        })
-
-    }, [userNameFilter])
+        return () => {
+            socket.off('new-post')
+            socket.off('delete-post')
+        }
+    }, [])
 
     const formatDate = (dateString: string): string => {
         const date = new Date(dateString)
