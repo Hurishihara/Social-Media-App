@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import UserService from '../services/user.service'
 import { userCookie } from '../utils/cookie';
 import { upload } from '../../multer.config';
+import { Socket } from 'socket.io';
 
 class UserController {
     async registerUser(req: Request, res: Response): Promise<void> {
@@ -81,14 +82,15 @@ class UserController {
                 }
              })
         }
-        async searchUser(query: string): Promise<any[]> {
+        async searchUser(socket: Socket): Promise<void> {
             try {
-                const users = await UserService.searchUser(query);
-                return users;
+                socket.on('search', async (query) => {
+                    const results = await UserService.searchUser(query);
+                    socket.emit('searchResults', results);
+                })
             }
             catch (err) {
                 console.error('Error searching for users', err);
-                return [];
             }
         }
     }

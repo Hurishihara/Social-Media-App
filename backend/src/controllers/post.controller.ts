@@ -3,13 +3,14 @@ import PostService from '../services/post.service'
 //import { uploadImage } from "../middleware/upload";
 import { upload } from "../../multer.config";
 import cloudinary, { extractPublicId } from "../db/cloudinary";
+import { io } from "../../server";
+import notificationService from "../services/notification.service";
 
 
 class PostController {
     async getPosts(req: Request, res: Response): Promise<void> {
         try {
             const { userName } = req.query;
-            console.log('userName', userName)
             const posts = await PostService.getPosts(userName as string);
             res.status(200).json(posts);
         }
@@ -27,7 +28,9 @@ class PostController {
             try {
                 const { userId, content } = req.body;
                 const imageUrl = req.file ? req.file.path : '';
-                await PostService.createPost(userId, content, imageUrl);
+                const newPost = await PostService.createPost(userId, content, imageUrl);
+                console.log('newPost', newPost)
+                io.emit('new-post', newPost);
                 res.status(201).json({ message: 'Post created' });
             }
             catch (err) {
@@ -53,6 +56,7 @@ class PostController {
         try {
             const { postId } = req.body;
             const response = await PostService.deletePost(postId);
+            io.emit('delete-post', postId);
             await cloudinary.api.delete_resources(
                 [extractPublicId(response)],
                 { type: 'upload', resource_type: 'image'}

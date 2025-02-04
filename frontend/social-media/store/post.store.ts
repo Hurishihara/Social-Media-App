@@ -10,6 +10,7 @@ export interface Post {
     createdAt: string
     updatedAt: string
    };
+   authorId: number
    authorName: string
    authorProfilePicture: string
    isLiked: boolean

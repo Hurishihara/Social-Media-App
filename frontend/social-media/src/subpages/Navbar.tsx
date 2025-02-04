@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Flex, Input, Box, Stack, IconButton, Icon, Spinner, useMenu, MenuContextTrigger, Button, } from '@chakra-ui/react'
+import { Card, Flex, Input, Box, Stack, IconButton, Icon, Spinner, useMenu, MenuContextTrigger, Button, Image, } from '@chakra-ui/react'
 import { Avatar } from '../src/components/ui/avatar';
 import { TiHome } from 'react-icons/ti'
 import { LuMessageCircleMore } from "react-icons/lu";
@@ -15,19 +15,19 @@ import { api } from '@/utils/axiosConfig';
 import { socket } from '../utils/socket.io'
 import { useUserStore } from '../../store/user.store';
 import { usePostStore } from '../../store/post.store';
+import { useNotificationStore } from '../../store/notification.store';
 
 const Navbar = () => {
 
 
   const [ query, setQuery ] = useState<string>('')
   const [ results, setResults ] = useState<any[]>([])
-  const[ loading, setLoading ] = useState<boolean>(false)
   const [ debounceTimeout, setDebounceTimeout ] = useState<NodeJS.Timeout | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
 
   const navigate = useNavigate()
-  const { userName, clearUser } = useUserStore()
+  const { userName, userId, profilePicture, clearUser } = useUserStore()
   const { clearPosts } = usePostStore()
+  const { notifications, setNotifications, clearNotifications } = useNotificationStore()
  
 
   const handleHomeButtonClick = () => {
@@ -40,6 +40,7 @@ const Navbar = () => {
       navigate('/')
       clearUser()
       clearPosts()
+      clearNotifications()
       alert(response.data.message)
     }
     catch (error) {
@@ -48,13 +49,29 @@ const Navbar = () => {
   }
 
   useEffect(() => {
+
+    if (userId) {
+      socket.emit('join-room', userId)
+    }
+
     socket.on('searchResults', (data) => {
       setResults(data)
-      setLoading(false)
       console.log('data', data)
     })
+    socket.on('like-notification', (data) => {
+      console.log(data)
+      setNotifications(data)
+    })
+    socket.on('unlike-notification', (data) => {
+      console.log('unlike data', data)
+      const updatedNotifications = notifications.filter((notifications: any) => notifications.sender_id !== data.senderId && notifications.related_post_id !== data.postId)
+      setNotifications(updatedNotifications)
+    })
+
     return () => {
       socket.off('searchResults')
+      socket.off('like-notification')
+      socket.off('unlike-notification')
     }
   }, [])
 
@@ -126,13 +143,29 @@ const Navbar = () => {
               <IconButton aria-label='Messages' rounded='full'  variant='ghost' size='md'>
                 <LuMessageCircleMore />
               </IconButton>
-              <IconButton aria-label='Notifications' rounded='full'  variant='ghost' size='md'>
-                <IoMdNotificationsOutline />
-              </IconButton>
+              <MenuRoot>
+                <MenuTrigger asChild>
+                  <IconButton aria-label='Notifications' rounded='full'  variant='ghost' size='md'>
+                    <IoMdNotificationsOutline />
+                  </IconButton>
+                </MenuTrigger>
+                <MenuContent>
+                  {notifications.length > 0 ? notifications.map((notification, index) => (
+                    <MenuItem key={index} value={notification.senderUserName} >
+                      <Avatar name={notification.senderUserName} src={notification.senderProfilePicture} />
+                      {notification.notificationText}
+                    </MenuItem>
+                  )): (
+                    <MenuItem value='No notifications'>
+                      No notifications
+                    </MenuItem>
+                  )}
+                </MenuContent>
+              </MenuRoot>
               <MenuRoot>
                 <MenuTrigger asChild>
                   <IconButton aria-label='Profile' rounded='full' variant='ghost' size='md'>
-                    <IoPersonSharp />
+                    <Avatar name={userName} src={profilePicture} size='sm' />
                   </IconButton>
                 </MenuTrigger>
                 <MenuContent>

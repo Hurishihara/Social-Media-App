@@ -1,7 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../db/db";
-import { LikesTable, PostsTable, UsersTable } from "../drizzle/schema";
-import { check } from "drizzle-orm/mysql-core";
+import { LikesTable, PostsTable } from "../drizzle/schema";
 
 
 class LikeService {

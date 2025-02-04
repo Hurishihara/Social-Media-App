@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm"
-import { integer, pgTable, serial, text, timestamp, unique, varchar, boolean, index } from "drizzle-orm/pg-core"
+import { integer, pgTable, serial, text, timestamp, unique, varchar, boolean, index, pgEnum } from "drizzle-orm/pg-core"
 
 export const UsersTable = pgTable('users', {
     id: serial('id').primaryKey(),
@@ -50,14 +50,20 @@ export const CommentsTable = pgTable('comments', {
     post_id: integer('post_id').references(() => PostsTable.id, { onDelete: 'cascade'}).notNull(),
 })
 
+export const notificationEnum = pgEnum('notification', ['like', 'comment', 'friend_request', 'friend_accept', 'friend_decline'])
+
 export const NotificationsTable = pgTable('notifications', {
     id: serial('id').primaryKey(),
-    notification_type: varchar('type', { length: 255 }).notNull(),
+    notification_type: notificationEnum().notNull(),
     has_seen: boolean('has_seen').default(false).notNull(),
     created_at: timestamp('created_at').defaultNow().notNull(),
+    related_post_id: integer('post_id').references(() => PostsTable.id, { onDelete: 'cascade' }),
+    related_user_id: integer('related_user_id').references(() => UsersTable.id, { onDelete: 'cascade' }),
     receiver_id: integer('receiver_id').references(() => UsersTable.id, { onDelete: 'cascade' }).notNull(),
     sender_id: integer('sender_id').references(() => UsersTable.id, { onDelete: 'cascade' }).notNull()
-})
+}, (table) => [{
+    unique_table: unique().on(table.receiver_id, table.sender_id, table.notification_type, table.related_post_id)
+}])
 
 
 // Relations
@@ -72,7 +78,15 @@ export const UsersTableRelations = relations(UsersTable, ({ many }) => ({
     posts: many(PostsTable),
     likes: many(LikesTable),
     comment: many(CommentsTable),
-    notifications: many(NotificationsTable)
+    notification_sender: many(NotificationsTable, {
+        relationName: 'notification_sender',
+    }),
+    notification_receiver: many(NotificationsTable, {
+        relationName: 'notification_receiver',
+    }),
+    related_user: many(NotificationsTable, {
+        relationName: 'related_user',
+    })
 }))
 
 export const FriendshipsTableRelations = relations(FriendshipsTable, ({ one }) => ({
@@ -122,6 +136,21 @@ export const CommentsTableRelations = relations(CommentsTable, ({ one }) => ({
 export const NotificationsTableRelations = relations(NotificationsTable, ({ one }) => ({
     sender: one(UsersTable, {
         fields: [NotificationsTable.sender_id],
-        references: [UsersTable.id]
+        references: [UsersTable.id],
+        relationName: 'notification_sender'
+    }),
+    receiver: one(UsersTable, {
+        fields: [NotificationsTable.receiver_id],
+        references: [UsersTable.id],
+        relationName: 'notification_receiver'
+    }),
+    related_post: one(PostsTable, {
+        fields: [NotificationsTable.related_post_id],
+        references: [PostsTable.id]
+    }),
+    related_user: one(UsersTable, {
+        fields: [NotificationsTable.related_user_id],
+        references: [UsersTable.id],
+        relationName: 'related_user'
     })
 }))

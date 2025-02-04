@@ -16,6 +16,7 @@ import { api } from './utils/axiosConfig'
 import { Post, usePostStore } from '../store/post.store'
 import CustomDialog from './CustomDialog';
 import { useUserStore } from '../store/user.store';
+import { socket } from './utils/socket.io'
 
 
 
@@ -30,7 +31,7 @@ interface PostsListProps {
 const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
     
     const { posts, setPosts } = usePostStore()
-    const { userId, userName, profilePicture } = useUserStore()
+    const { userId, userName } = useUserStore()
     const [ selectedPost, setSelectedPost ] = useState(null)
     const [ open, setOpen ] = useState<Boolean>(false)
 
@@ -57,7 +58,7 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
         try {
             const likedPost = updatedPost.find(post => post.post.postId === postId)
             if (likedPost) {
-                await api.post('/like-post', { postId: likedPost.post.postId, userId: userId })
+                await api.post('/like-post', { postId: likedPost.post.postId, userId: userId, author: likedPost.authorId })
             }
         }
         catch(err) {
@@ -93,13 +94,28 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
                     isLiked: post.likes.some((like: any) => like.userId === userId) ? true : false
                 }))
                 setPosts(updatedPosts)
+                console.log('updatedPosts', updatedPosts)
             }
             catch(err) {
                 console.error(err)
             }
-            console.log(posts)
+            
         }
         fetchPosts(userNameFilter)
+
+        socket.on('new-post', (newPost: Post) => {
+            setPosts([newPost, ...posts])
+        })
+
+        socket.on('delete-post', (postId: number) => {
+            const updatedPosts = posts.filter(post => post.post.postId !== postId)
+            setPosts(updatedPosts)
+        })
+
+        socket.on('get-notifications', (notification: any) => {
+            console.log('notification', notification)
+        })
+
     }, [userNameFilter])
 
     const formatDate = (dateString: string): string => {
