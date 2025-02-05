@@ -18,7 +18,7 @@ class LikeController {
             if (response.message === 'Post already liked') {
                 await likeService.unlikePost(userId, postId);
                 console.log('Emitting unlike-notification for user:', userId, 'on post:', postId);
-                const notification = await notificationService.deleteNotification(userId)
+                const notification = await notificationService.deleteNotification(userId, postId)
                 console.log('Notification:', notification)
                 io.to(authorSocketId).emit('unlike-notification', notification)
                 res.status(200).json({ message: 'Post unliked' });

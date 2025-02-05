@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../db/db";
 import { NotificationsTable, PostsTable, UsersTable } from "../drizzle/schema";
 
@@ -70,8 +70,13 @@ class NotificationService {
         }))
     }
 
-    async deleteNotification(senderId: number): Promise<any> {
-        const deletedNotification = await db.delete(NotificationsTable).where(eq(NotificationsTable.sender_id, senderId)).returning({
+    async deleteNotification(senderId: number, postId: number): Promise<any> {
+        const deletedNotification = await db.delete(NotificationsTable).where(
+            and(
+                eq(NotificationsTable.sender_id, senderId),
+                eq(NotificationsTable.related_post_id, postId)
+            )
+        ).returning({
             postId: NotificationsTable.related_post_id,
             senderId: NotificationsTable.sender_id
         })
