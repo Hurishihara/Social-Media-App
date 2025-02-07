@@ -35,7 +35,7 @@ app.use('/api', router);
 
 io.on('connection', (socket) => {
     console.log('A user connected', socket.id);
-    userController.searchUser(socket);
+    userController.SearchUserWebSocket(socket);
     handleUserConnection(socket);
 })
 

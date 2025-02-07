@@ -16,6 +16,7 @@ import { socket } from '../utils/socket.io'
 import { useUserStore } from '../../store/user.store';
 import { usePostStore } from '../../store/post.store';
 import { useNotificationStore, Notification } from '../../store/notification.store';
+import { formatDate } from '../PostsList'
 
 const Navbar = () => {
 
@@ -75,7 +76,6 @@ const Navbar = () => {
     })
     socket.on('like-notification', (data) => {
       console.log('like data', data)
-      console.log('check userNotifications', useNotificationStore.getState().userNotifications.length)
       const currentNotification = useNotificationStore.getState().userNotifications
       const updatedNotifications = [data, ...currentNotification]
       setUserNotifications(updatedNotifications)
@@ -113,7 +113,11 @@ const Navbar = () => {
   }
 
   const handleProfileClick = () => {
-    navigate('/profile')
+    navigate(`/${userName}`)
+  }
+
+  const handleSearchUser = (username: string) => {
+    navigate(`/${username}`)
   }
 
   return (
@@ -132,8 +136,8 @@ const Navbar = () => {
                       <MenuContent>
                         {results.length > 0 ? (
                           results.map((results, index) => (
-                            <MenuItem key={index} value={results.username} gap='1rem' fontSize='1rem'>
-                              <Avatar name={results.username} src={results.profile_picture} />
+                            <MenuItem key={index} value={results.username} gap='1rem' fontSize='1rem' onClick={() => handleSearchUser(results.username)} >
+                              <Avatar name={results.username} src={results.profilePicture} />
                               {results.username}
                             </MenuItem>
                           ))
@@ -185,7 +189,14 @@ const Navbar = () => {
                   {userNotifications.length > 0 ? userNotifications.map((notification, index) => (
                     <MenuItem key={index} value={notification.senderUserName} >
                       <Avatar name={notification.senderUserName} src={notification.senderProfilePicture} />
-                      {notification.notificationText}
+                      <Stack direction='column' gap='0'>
+                        <Box fontSize='1rem'>
+                          {notification.notificationText}
+                        </Box>
+                        <Box fontSize='0.7rem'>
+                          {formatDate(notification.created_at)}
+                        </Box>
+                      </Stack>
                     </MenuItem>
                   )): (
                     <MenuItem value='No notifications'>

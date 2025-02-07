@@ -15,6 +15,7 @@ import {
     FileUploadRoot,
     FileUploadTrigger
 } from './src/components/ui/file-upload'
+import { Avatar } from './src/components/ui/avatar'
 import React, { useState } from 'react'
 import { IoPersonSharp } from 'react-icons/io5'
 import { FaRegImages } from "react-icons/fa";
@@ -29,7 +30,7 @@ interface CreatePostProps {
 
 const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
     
-    const { userName, userId } = useUserStore()
+    const { userName, userId, profilePicture } = useUserStore()
     const [content, setContent] = useState<string>('')
 
 
@@ -75,13 +76,11 @@ const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
             <Card.Root>
                 <Card.Body>
                     <Stack direction='row' gap='3' align='center' >
-                        <Icon>
-                            <IoPersonSharp />
-                        </Icon>
+                        <Avatar src={profilePicture} size='sm'/>
                         <form id='create-post' method='post' onSubmit={handleCreatePost} encType='multipart/form-data'>
                         <DialogRoot size='md' placement='center'>
                             <DialogTrigger asChild>
-                                <Button borderRadius='3rem' w={!createPostButtonSize ? '29rem' : createPostButtonSize} size='md' variant='subtle' color='gray.500'>
+                                <Button borderRadius='3rem' w={!createPostButtonSize ? '28rem' : createPostButtonSize} size='md' variant='subtle' color='gray.500'>
                                     Create a new post...
                                 </Button>
                             </DialogTrigger>

@@ -15,11 +15,13 @@ export const UsersTable = pgTable('users', {
     userNameSearchIndex: index('username_search_index').using('gin', sql`to_tsvector('english', ${table.username})`)
 }))
 
+export const friendshipStatusEnum = pgEnum('friendship_status', ['pending', 'accepted', 'declined'])
+
 export const FriendshipsTable = pgTable('friendships', {
     id: serial('id').primaryKey(),
-    friendship_status: varchar('friendship_status', { length: 255 }),
+    friendship_status: friendshipStatusEnum().notNull(),
     sender_id: integer('sender_id').references(() => UsersTable.id).notNull(),
-    receiver_id: integer('user_id').references(() => UsersTable.id).notNull(),
+    receiver_id: integer('receiver_id').references(() => UsersTable.id).notNull(),
 }, (table) => [{
     unique_table: unique().on(table.sender_id, table.receiver_id)
 }])

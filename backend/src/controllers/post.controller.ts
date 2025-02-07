@@ -10,6 +10,7 @@ class PostController {
     async getPosts(req: Request, res: Response): Promise<void> {
         try {
             const { userName } = req.query;
+            console.log('userName', userName)
             const posts = await PostService.getPosts(userName as string);
             res.status(200).json(posts);
         }

@@ -13,6 +13,7 @@ class LikeController {
             const authorSocketId = userSockets[author];
             if (authorSocketId) {
                 const notification = await notificationService.createNotification('like', author, userId, postId)
+                console.log('create notification:', notification)
                 io.to(authorSocketId).emit('like-notification', notification[0])
             }
             if (response.message === 'Post already liked') {

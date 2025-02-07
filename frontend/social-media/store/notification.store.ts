@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
 export interface Notification {
-    createdAt: string
+    created_at: string
     has_seen: boolean
     id: number
     notificationText: string

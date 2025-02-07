@@ -1,6 +1,6 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, is, sql } from "drizzle-orm";
 import { db } from "../db/db";
-import { UsersTable } from "../drizzle/schema";
+import { FriendshipsTable, UsersTable } from "../drizzle/schema";
 import bcrypt from 'bcrypt';
 import { generateToken } from "../utils/jwt";
 import { User } from "../models/user";
@@ -23,7 +23,8 @@ class UserService {
         if (!passwordMatch) {
             throw new Error('Incorrect password');
         }
-        return {user: user[0] as User, token: generateToken(user[0].id)}
+        const token = generateToken(user[0].id);
+        return {user: user[0] as User, token: token};
     }
 
     async logoutUser () {
@@ -55,20 +56,36 @@ class UserService {
         }
     }
 
-    async searchUser(query: string): Promise<User[]> {
+    async searchUser(query: string, currentUser?: number): Promise<any[]> {
         if (!query) {
             return [];
         }
         const users = await db.select().from(UsersTable).where(sql`to_tsvector('english', ${UsersTable.username}) @@ to_tsquery('english', ${query})`);
-        return users.map(user => ({
-            id: user.id,
-            username: user.username,
-            email: '',
-            password: '',
-            bio: '',
-            profile_picture: user.profile_picture,
-            created_at: new Date()
-        }) as User)
+        const checkFriends = await db.select({
+            status: FriendshipsTable.friendship_status
+        }).from(FriendshipsTable).where(and(
+            eq(FriendshipsTable.receiver_id, users[0].id ?? 0),
+            eq(FriendshipsTable.sender_id, currentUser ?? 0)
+        ))
+        return users.map(user => {
+            const isFriendStatus = checkFriends.length > 0 ? checkFriends[0].status : null; 
+            if (currentUser && user.id === currentUser) {
+                return ({
+                    id: user.id,
+                    username: user.username,
+                    profilePicture: user.profile_picture,
+                    bio: user.bio,
+                    isFriend: true
+                })
+            }
+            return ({
+                id: user.id,
+                username: user.username,
+                profilePicture: user.profile_picture,
+                bio: user.bio,
+                isFriend: isFriendStatus
+            })
+        })
     }
 }
 

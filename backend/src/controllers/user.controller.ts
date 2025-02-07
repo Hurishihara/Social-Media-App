@@ -82,7 +82,19 @@ class UserController {
                 }
              })
         }
-        async searchUser(socket: Socket): Promise<void> {
+        async searchUser(req: Request, res: Response): Promise<void> {
+            try {
+                const { username } = req.params;
+                const currentUser = req.user?.userId;
+                const user = await UserService.searchUser(username, currentUser);
+                res.status(200).json(user);
+            }
+            catch (err) {
+                console.error('Error searching for users', err);
+            }
+        }
+
+        async SearchUserWebSocket(socket: Socket): Promise<void> {
             try {
                 socket.on('search', async (query) => {
                     const results = await UserService.searchUser(query);

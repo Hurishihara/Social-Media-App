@@ -22,7 +22,7 @@ createRoot(document.getElementById('root')!).render(
           </Route>
           <Route element={<PrivateLayout />}>
             <Route path='/home' element={<HomePage />} />
-            <Route path='/profile' element={<ProfilePage />} />
+            <Route path=':username' element={<ProfilePage />} />
           </Route>
         </Routes>
         </AuthProviderWrapper>

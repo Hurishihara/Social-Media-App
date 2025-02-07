@@ -46,7 +46,7 @@ class NotificationService {
 
     async getNotifications(receiverId: number): Promise<any> {
         const notifications = await db.select({
-            createdAt: NotificationsTable.created_at,
+            created_at: NotificationsTable.created_at,
             has_seen: NotificationsTable.has_seen,
             id: NotificationsTable.id,
             notification_type: NotificationsTable.notification_type,

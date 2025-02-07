@@ -4,6 +4,7 @@ import { loginUserValidation, registerUserValidation, userAuthValidation } from 
 import postController from '../controllers/post.controller';
 import likeController from '../controllers/like.controller';
 import notificationController from '../controllers/notification.controller';
+import friendshipController from '../controllers/friendship.controller';
 
 const router = express.Router();
 
@@ -13,7 +14,9 @@ router.post('/login', loginUserValidation, userController.loginUser)
 router.post('/logout', userAuthValidation, userController.logoutUser)
 
 router.post('/like-post', userAuthValidation, likeController.LikePost)
+router.post('/send-friend-request', userAuthValidation, friendshipController.createFriendship)
 
+router.get('/profile/:username', userAuthValidation, userController.searchUser)
 router.get('/posts', userAuthValidation, postController.getPosts)
 router.get('/notifications', userAuthValidation, notificationController.getNotifications)
 

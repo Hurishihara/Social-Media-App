@@ -6,6 +6,7 @@ import { Request, Response, NextFunction } from "express";
 import { parseCookies } from "../utils/cookie";
 import { verifyToken } from "../utils/jwt";
 import { User } from "../models/user";
+import { JwtDecoded } from "../models/jwt";
 
 
 
@@ -54,6 +55,7 @@ export const loginUserValidation = [
     .notEmpty().withMessage('Password cannot be empty')
 ]
 
+
 export const userAuthValidation = (req: Request, res: Response, next: NextFunction): void => {
     const cookies = parseCookies(req);
     const token = cookies.authToken;
@@ -65,7 +67,7 @@ export const userAuthValidation = (req: Request, res: Response, next: NextFuncti
 
     try {
         const decoded = verifyToken(token);
-        req.user = decoded as User;
+        req.user = decoded as JwtDecoded;
         next();
     }
     catch (error) {

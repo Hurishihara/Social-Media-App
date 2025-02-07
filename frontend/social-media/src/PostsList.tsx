@@ -5,7 +5,7 @@ import {
     MenuRoot,
     MenuTrigger,
   } from './src/components/ui/menu'
-  import { Avatar } from './src/components/ui/avatar'
+import { Avatar } from './src/components/ui/avatar'
 import React, { useEffect, useState }from 'react'
 import { IoPersonSharp } from 'react-icons/io5'
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
@@ -25,7 +25,18 @@ interface PostsListProps {
     userNameFilter: string | undefined
 }
 
-
+export const formatDate = (dateString: string): string => {
+    const date = new Date(dateString)
+    return date.toLocaleString('en-US', {
+        timeZone: 'UTC',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+    })
+}
 
 
 const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
@@ -95,7 +106,6 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
                     isLiked: post.likes.some((like: any) => like.userId === userId) ? true : false
                 }))
                 setPosts(updatedPosts)
-                console.log('updatedPosts', updatedPosts)
             }
             catch(err) {
                 console.error(err)
@@ -118,22 +128,8 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
             socket.off('new-post')
             socket.off('delete-post')
         }
-    }, [])
+    }, [userNameFilter])
 
-    const formatDate = (dateString: string): string => {
-        const date = new Date(dateString)
-        return date.toLocaleString('en-US', {
-            timeZone: 'UTC',
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-            hour12: true
-        })
-    }
-    
-    
     
     return (
         <>
