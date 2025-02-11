@@ -81,9 +81,24 @@ const Navbar = () => {
       setUserNotifications(updatedNotifications)
     })
     socket.on('unlike-notification', (data) => {
-      console.log('unlike data', data.postId)
+      console.log('unlike data', data)
       const currentNotification = useNotificationStore.getState().userNotifications
-      const updatedNotifications = currentNotification.filter(notification => !(notification.related_post_id === data.postId && notification.sender_id === data.senderId))
+      const updatedNotifications = currentNotification.filter(notification => notification.id === data.id)
+      setUserNotifications(updatedNotifications)
+    })
+    socket.on('friend-request-notification', (data) => {
+      const currentNotification = useNotificationStore.getState().userNotifications
+      const updatedNotifications = [data, ...currentNotification]
+      setUserNotifications(updatedNotifications)
+    })
+    socket.on('friend-accept-notification', (data) => {
+      const currentNotification = useNotificationStore.getState().userNotifications
+      const updatedNotifications = [data, ...currentNotification]
+      setUserNotifications(updatedNotifications)
+    })
+    socket.on('cancel-friend-request', (data) => {
+      const currentNotification = useNotificationStore.getState().userNotifications
+      const updatedNotifications = currentNotification.filter(notification => notification.id === data.id)
       setUserNotifications(updatedNotifications)
     })
 
@@ -95,6 +110,9 @@ const Navbar = () => {
       socket.off('searchResults')
       socket.off('like-notification')
       socket.off('unlike-notification')
+      socket.off('friend-request-notification')
+      socket.off('friend-accept-notification')
+      socket.off('cancel-friend-request')
     }
   }, [userId])
 

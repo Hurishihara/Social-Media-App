@@ -1,14 +1,15 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { db } from "../db/db";
 import { FriendshipsTable } from "../drizzle/schema";
+import notificationService from "./notification.service";
 
 type FriendshipStatus = 'pending' | 'accepted' | 'declined';
 
 class FriendshipService {
     async createFriendship(friendshipStatus: FriendshipStatus, senderId: number, receiverId: number): Promise<any> {
-        const checkExistingFriendship = await db.select().from(FriendshipsTable).where(and(
-            eq(FriendshipsTable.sender_id, senderId),
-            eq(FriendshipsTable.receiver_id, receiverId)
+        const checkExistingFriendship = await db.select().from(FriendshipsTable).where(or(
+            and(eq(FriendshipsTable.sender_id, senderId), eq(FriendshipsTable.receiver_id, receiverId)),
+            and(eq(FriendshipsTable.sender_id, receiverId), eq(FriendshipsTable.receiver_id, senderId))
         ))
         if (checkExistingFriendship.length) {
             return checkExistingFriendship[0]
@@ -19,24 +20,38 @@ class FriendshipService {
             receiver_id: receiverId
         }).returning({
             id: FriendshipsTable.id,
-            senderId: FriendshipsTable.sender_id,
+            receiverId: FriendshipsTable.receiver_id,
             friendshipStatus: FriendshipsTable.friendship_status
         });
         return friendships[0]
     }
-    async acceptFriendship(friendshipStatus: FriendshipStatus, friendshipId: number, receiverId: number): Promise<any> {
-        return await db.update(FriendshipsTable).set({
+    async acceptFriendship(friendshipStatus: FriendshipStatus, friendshipId: number): Promise<any> {
+        const friendship = await db.update(FriendshipsTable).set({
             friendship_status: friendshipStatus
-        }).where(and(
-            eq(FriendshipsTable.id, friendshipId),
-            eq(FriendshipsTable.receiver_id, receiverId)
-        )).returning()
+        }).where(eq(FriendshipsTable.id, friendshipId)).returning({
+            id: FriendshipsTable.id,
+            receiverId: FriendshipsTable.receiver_id,
+            friendshipStatus: FriendshipsTable.friendship_status
+        })
+        return friendship[0];
     }
-    async declineFriendship(friendshipId: number, receiverId: number): Promise<any> {
-        return await db.delete(FriendshipsTable).where(and(
-            eq(FriendshipsTable.id, friendshipId),
-            eq(FriendshipsTable.receiver_id, receiverId)
-        )).returning()
+    async cancelFriendship(friendshipId: number): Promise<any> {
+        const checkFriendship = await db.query.FriendshipsTable.findFirst({
+            where: eq(FriendshipsTable.id, friendshipId),
+            columns: {
+                id: true
+            }
+        })
+        if (checkFriendship) {
+            const deletedNotification = await notificationService.deleteNotification(undefined, checkFriendship.id)
+            console.log('deleted friendship notification', deletedNotification)
+            const friendship = await db.delete(FriendshipsTable).where(eq(FriendshipsTable.id, friendshipId)).returning({
+                id: FriendshipsTable.id,
+                receiverId: FriendshipsTable.receiver_id,
+                friendshipStatus: FriendshipsTable.friendship_status
+            })
+            return { friendship: friendship[0], notification: deletedNotification }
+        }
     }
 }
 

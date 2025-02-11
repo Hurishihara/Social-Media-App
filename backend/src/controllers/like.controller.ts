@@ -8,24 +8,26 @@ import notificationService from "../services/notification.service";
 class LikeController {
     async LikePost(req: Request, res: Response): Promise<void> {
         try {
-            const { userId, postId, author } = req.body;
-            const response = await likeService.likePost(userId, postId);
-            const authorSocketId = userSockets[author];
-            if (authorSocketId) {
-                const notification = await notificationService.createNotification('like', author, userId, postId)
-                console.log('create notification:', notification)
-                io.to(authorSocketId).emit('like-notification', notification[0])
+            const { author, postId } = req.body;
+            const currentUser = req.user?.userId;
+            if (!currentUser) {
+                res.status(401).json({ message: 'Unauthorized' });
+                return;
             }
+            const response = await likeService.likePost(currentUser, postId);
+            const authorSocketId = userSockets[author];
+            
             if (response.message === 'Post already liked') {
-                await likeService.unlikePost(userId, postId);
-                console.log('Emitting unlike-notification for user:', userId, 'on post:', postId);
-                const notification = await notificationService.deleteNotification(userId, postId)
-                console.log('Notification:', notification)
-                io.to(authorSocketId).emit('unlike-notification', notification)
+                const response = await likeService.unlikePost(currentUser, postId);
+                io.to(authorSocketId).emit('unlike-notification', response.notification)
                 res.status(200).json({ message: 'Post unliked' });
             }
             else {
-                res.status(200).json({ message: 'Post liked' });
+                if (authorSocketId) {
+                    const notification = await notificationService.createNotification('like', author, currentUser, response.id)
+                    console.log('create notification:', notification)
+                    io.to(authorSocketId).emit('like-notification', notification[0])
+                }
             }
         }
         catch(err) {

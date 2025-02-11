@@ -62,13 +62,21 @@ const ProfilePage = () => {
         username: string,
         profilePicture: string,
         bio: string
-        isFriend: string | null
+        isFriend: {
+            id: number | null, 
+            status: string | null | boolean,
+            receiver: number | null
+        } 
     }>({
         id: 0,
         username: '',
         profilePicture: '',
         bio: '',
-        isFriend: ''
+        isFriend: {
+            id: 0,
+            status: '',
+            receiver: 0
+        }
     })
 
 
@@ -137,6 +145,43 @@ const ProfilePage = () => {
             })
             alert('Friend request sent')
             console.log('Friend request success', response)
+            const updatedData = { ...searchedUserProfileData, isFriend: { id: response.data.id, receiver: response.data.receiverId, status: response.data.friendshipStatus } }
+            setSearchedUserProfileData(updatedData)
+        }
+        catch (err) {
+            console.error(err)
+        }
+    }
+    
+    const handleAcceptFriend = async () => {
+        try {
+            const response = await api.patch('/accept-friend-request', {
+                friendshipId: searchedUserProfileData.isFriend.id,
+                receiverId: searchedUserProfileData.id
+            })
+            alert('Friend request accepted')
+            console.log('Friend request accepted', response)
+            const updatedData = { ...searchedUserProfileData, isFriend: { id: response.data.id, receiver: response.data.receiverId, status: response.data.friendshipStatus } }
+            setSearchedUserProfileData(updatedData)
+        }
+        catch (err) {
+            console
+        }
+    }
+
+    const handleCancelRequest = async () => {
+        try {
+            const response = await api.delete('/decline-friend-request', {
+                data: {
+                    friendshipId: searchedUserProfileData.isFriend.id,
+                    receiverId: searchedUserProfileData.id
+                }
+            })
+            console.log('Friendship id', searchedUserProfileData.isFriend.id)
+            alert('Friend request declined')
+            console.log('Friend request declined', response)
+            const updatedData = { ...searchedUserProfileData, isFriend: { id: response.data.id, receiver: response.data.receiverId, status: response.data.friendshipStatus } }
+            setSearchedUserProfileData(updatedData)
         }
         catch (err) {
             console.error(err)
@@ -252,13 +297,36 @@ const ProfilePage = () => {
                                                         </DialogContent>
                                                         </DialogRoot>
                                                 </form>
-                                                    ) : searchedUserProfileData.isFriend ? (
+                                                    ) : searchedUserProfileData.isFriend.status === 'pending' ? (
+                                                        searchedUserProfileData.isFriend.receiver === userId ? (
+                                                            <>
+                                                            <Button size='sm' variant='subtle' color='black' bgColor='gray.200' borderRadius='0.5rem' onClick={handleAcceptFriend} >
+                                                                <FaUserCheck />
+                                                                Accept request
+                                                            </Button>
+                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='blue.400' color='white' >
+                                                                Message
+                                                            </Button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                            <Button size='sm' variant='subtle' color='white' bgColor='blue.400' borderRadius='0.5rem' onClick={handleCancelRequest} >
+                                                                <FaUserCheck />
+                                                                Pending request
+                                                            </Button>
+                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='gray.200' color='black' >
+                                                                Message
+                                                            </Button>
+                                                        </> 
+                                                        )
+                                                    ) : searchedUserProfileData.isFriend.status === 'accepted' ? (
                                                         <>
                                                             <Button size='sm' variant='subtle' color='black' bgColor='gray.200' borderRadius='0.5rem' >
-                                                                <FaUserCheck />
+                                                                <AiOutlineUserAdd color='black' />
                                                                 Friends
                                                             </Button>
                                                             <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='blue.500' color='white' >
+                                                                <LuMessageCircleMore />
                                                                 Message
                                                             </Button>
                                                         </>
@@ -273,7 +341,7 @@ const ProfilePage = () => {
                                                                 Message
                                                             </Button>
                                                         </>
-                                                    ) }
+                                                    )}
                                         </Stack>
                                     </Stack>
                                 </Stack>
@@ -301,7 +369,7 @@ const ProfilePage = () => {
                     </Card.Root>
                 </GridItem>
                 <GridItem colSpan='7'>
-                    {searchedUserProfileData.isFriend && (
+                    {(searchedUserProfileData.isFriend.status === 'accepted' || searchedUserProfileData.isFriend.status === true) && (
                         <>
                             <CreatePost createPostButtonSize={'34rem'} />
                             <PostsList userNameFilter={searchedUserProfileData.username} />

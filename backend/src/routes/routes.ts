@@ -21,7 +21,9 @@ router.get('/posts', userAuthValidation, postController.getPosts)
 router.get('/notifications', userAuthValidation, notificationController.getNotifications)
 
 router.patch('/edit-post', userAuthValidation, postController.editPost)
+router.patch('/accept-friend-request', userAuthValidation, friendshipController.acceptFriendship)
 router.delete('/delete-post', userAuthValidation, postController.deletePost)
+router.delete('/decline-friend-request', userAuthValidation, friendshipController.cancelFriendship)
 
 router.get('/check-auth', userAuthValidation,  (req, res) => {
     res.status(200).json({ message: 'Authenticated' });

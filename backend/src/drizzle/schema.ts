@@ -59,12 +59,12 @@ export const NotificationsTable = pgTable('notifications', {
     notification_type: notificationEnum().notNull(),
     has_seen: boolean('has_seen').default(false).notNull(),
     created_at: timestamp('created_at').defaultNow().notNull(),
-    related_post_id: integer('post_id').references(() => PostsTable.id, { onDelete: 'cascade' }),
-    related_user_id: integer('related_user_id').references(() => UsersTable.id, { onDelete: 'cascade' }),
+    related_like_id: integer('related_like_id').references(() => LikesTable.id),
+    related_friendship_id: integer('related_friendship_id').references(() => FriendshipsTable.id),
     receiver_id: integer('receiver_id').references(() => UsersTable.id, { onDelete: 'cascade' }).notNull(),
     sender_id: integer('sender_id').references(() => UsersTable.id, { onDelete: 'cascade' }).notNull()
 }, (table) => [{
-    unique_table: unique().on(table.receiver_id, table.sender_id, table.notification_type, table.related_post_id)
+    unique_table: unique().on(table.receiver_id, table.sender_id, table.notification_type)
 }])
 
 
@@ -86,9 +86,6 @@ export const UsersTableRelations = relations(UsersTable, ({ many }) => ({
     notification_receiver: many(NotificationsTable, {
         relationName: 'notification_receiver',
     }),
-    related_user: many(NotificationsTable, {
-        relationName: 'related_user',
-    })
 }))
 
 export const FriendshipsTableRelations = relations(FriendshipsTable, ({ one }) => ({
@@ -101,6 +98,10 @@ export const FriendshipsTableRelations = relations(FriendshipsTable, ({ one }) =
         fields: [FriendshipsTable.receiver_id],
         references: [UsersTable.id],
         relationName: 'friendships_to_receiver'
+    }),
+    notificationFriendshipId: one(NotificationsTable, {
+        fields: [FriendshipsTable.id],
+        references: [NotificationsTable.related_friendship_id]
     })
 }))
 
@@ -121,6 +122,10 @@ export const LikesTableRelations = relations(LikesTable, ({ one }) => ({
     userLike: one(UsersTable, {
         fields: [LikesTable.user_id],
         references: [UsersTable.id]
+    }),
+    notificationLikeId: one(NotificationsTable, {
+        fields: [LikesTable.id],
+        references: [NotificationsTable.related_like_id]
     })
 }))
 
@@ -146,13 +151,12 @@ export const NotificationsTableRelations = relations(NotificationsTable, ({ one 
         references: [UsersTable.id],
         relationName: 'notification_receiver'
     }),
-    related_post: one(PostsTable, {
-        fields: [NotificationsTable.related_post_id],
-        references: [PostsTable.id]
+    relatedLike: one(LikesTable, {
+        fields: [NotificationsTable.related_like_id],
+        references: [LikesTable.id]
     }),
-    related_user: one(UsersTable, {
-        fields: [NotificationsTable.related_user_id],
+    relatedFriendship: one(UsersTable, {
+        fields: [NotificationsTable.related_friendship_id],
         references: [UsersTable.id],
-        relationName: 'related_user'
     })
 }))

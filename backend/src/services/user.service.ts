@@ -1,4 +1,4 @@
-import { and, eq, is, sql } from "drizzle-orm";
+import { and, eq, is, or, sql } from "drizzle-orm";
 import { db } from "../db/db";
 import { FriendshipsTable, UsersTable } from "../drizzle/schema";
 import bcrypt from 'bcrypt';
@@ -61,21 +61,29 @@ class UserService {
             return [];
         }
         const users = await db.select().from(UsersTable).where(sql`to_tsvector('english', ${UsersTable.username}) @@ to_tsquery('english', ${query})`);
-        const checkFriends = await db.select({
-            status: FriendshipsTable.friendship_status
-        }).from(FriendshipsTable).where(and(
-            eq(FriendshipsTable.receiver_id, users[0].id ?? 0),
-            eq(FriendshipsTable.sender_id, currentUser ?? 0)
-        ))
+        const checkFriends = await db.query.FriendshipsTable.findFirst({
+            where: or(
+                and(eq(FriendshipsTable.sender_id, currentUser!), eq(FriendshipsTable.receiver_id, users[0].id!)),
+                and(eq(FriendshipsTable.sender_id, users[0].id!), eq(FriendshipsTable.receiver_id, currentUser!))
+            ),
+            columns: {
+                id: true,
+                friendship_status: true,
+                receiver_id: true
+            }
+        })
         return users.map(user => {
-            const isFriendStatus = checkFriends.length > 0 ? checkFriends[0].status : null; 
             if (currentUser && user.id === currentUser) {
                 return ({
                     id: user.id,
                     username: user.username,
                     profilePicture: user.profile_picture,
                     bio: user.bio,
-                    isFriend: true
+                    isFriend: {
+                        id: null,
+                        status: true,
+                        receiver: null
+                    }
                 })
             }
             return ({
@@ -83,7 +91,15 @@ class UserService {
                 username: user.username,
                 profilePicture: user.profile_picture,
                 bio: user.bio,
-                isFriend: isFriendStatus
+                isFriend: checkFriends ? {
+                    id: checkFriends.id,
+                    status: checkFriends.friendship_status,
+                    receiver: checkFriends.receiver_id
+                } : {
+                    id: null,
+                    status: null,
+                    receiver: null
+                }
             })
         })
     }
