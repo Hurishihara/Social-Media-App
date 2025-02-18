@@ -70,7 +70,8 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
         try {
             const likedPost = updatedPost.find(post => post.post.postId === postId)
             if (likedPost) {
-                await api.post('/like-post', { postId: likedPost.post.postId, userId: userId, author: likedPost.authorId })
+                const likeApi = api('like')
+                await likeApi.post('/like-post', { postId: likedPost.post.postId, userId: userId, author: likedPost.authorId })
             }
         }
         catch(err) {
@@ -85,7 +86,8 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
 
     const handleDelete = async (postId: number): Promise<void> => {
         try {
-            await api.delete(`/delete-post`, {
+            const postApi = api('post')
+            await postApi.delete(`/delete-post`, {
                 data: { postId }
             })
             alert('Post deleted')
@@ -98,7 +100,8 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
     useEffect(() => {
         const fetchPosts = async (userNameFilter?: string) => {
             try {
-                const response = await api.get('/posts', {
+                const postApi = api('post')
+                const response = await postApi.get('/posts', {
                     params: userNameFilter ? { userName: userNameFilter } : {}
                 })
                 const updatedPosts = response.data.map((post: Post) => ({

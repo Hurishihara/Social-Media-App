@@ -53,6 +53,35 @@ class FriendshipService {
             return { friendship: friendship[0], notification: deletedNotification }
         }
     }
+
+    async getFriends(userId: number): Promise<any> {
+        const friends = await db.query.FriendshipsTable.findMany({
+            where: or(
+                and(eq(FriendshipsTable.sender_id, userId), eq(FriendshipsTable.friendship_status, 'accepted')),
+                and(eq(FriendshipsTable.receiver_id, userId), eq(FriendshipsTable.friendship_status, 'accepted'))
+            ),
+            with: {
+                sender: true,
+                receiver: true
+            }
+        })
+        return friends.map(friendship => {
+            if (friendship.sender_id === userId) {
+                return {
+                    id: friendship.receiver.id,
+                    userName: friendship.receiver.username,
+                    profilePicture: friendship.receiver.profile_picture
+                }
+            }
+            else {
+                return {
+                    id: friendship.sender.id,
+                    userName: friendship.sender.username,
+                    profilePicture: friendship.sender.profile_picture
+                }
+            }
+        })
+    }
 }
 
 export default new FriendshipService();

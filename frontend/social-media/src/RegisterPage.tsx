@@ -16,7 +16,8 @@ const RegisterPage = () => {
     e.preventDefault()
 
     try {
-      const response = await api.post('/register', {username, email, password})
+      const authApi = api('auth')
+      const response = await authApi.post('/register', { username, email, password })
       console.log(response.data.message)
     }
     catch (error) {

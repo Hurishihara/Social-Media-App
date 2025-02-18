@@ -38,7 +38,8 @@ const Navbar = () => {
   const handleLogOut = async (): Promise<void> => {
     try {
       socket.disconnect()
-      const response = await api.post('/logout')
+      const authApi = api('auth')
+      const response = await authApi.post('/logout')
       navigate('/')
       clearUser()
       clearPosts()
@@ -54,7 +55,8 @@ const Navbar = () => {
 
     const fetchNotifications = async (userIdFilter?: number) => {
       try {
-        const response = await api.get('/notifications', {
+        const notificationApi = api('notification')
+        const response = await notificationApi.get('/notifications', {
           params: userIdFilter ? { userId: userIdFilter } : {}
         })
         console.log('fetch notifications', response.data)
@@ -138,6 +140,10 @@ const Navbar = () => {
     navigate(`/${username}`)
   }
 
+  const handleMessageClick = () => {
+    navigate('/messages')
+  }
+
   return (
     <>
         <Card.Root height='4rem' borderRadius='none' position='sticky' top='0' zIndex='1000'>
@@ -185,7 +191,7 @@ const Navbar = () => {
               </IconButton>
             </Box>
             <Flex alignItems='center' gap='1' mr='1rem'>
-              <IconButton aria-label='Messages' rounded='full'  variant='ghost' size='md'>
+              <IconButton aria-label='Messages' rounded='full' variant='ghost' size='md' onClick={handleMessageClick}>
                 <LuMessageCircleMore />
               </IconButton>
               <MenuRoot>
@@ -230,12 +236,12 @@ const Navbar = () => {
                   </IconButton>
                 </MenuTrigger>
                 <MenuContent>
-                  <MenuItem value='profile' onClick={handleProfileClick} >
-                    <LuSquareUserRound />
+                  <MenuItem value={userName ?? ''} onClick={handleProfileClick} >
+                    <Avatar name={userName} src={profilePicture} size='sm' />
                     {userName}
                   </MenuItem>
                   <MenuItem value="logout" onClick={handleLogOut}>
-                    <RiLogoutBoxRLine />
+                    <RiLogoutBoxRLine size='1.3rem' color='black' />
                     Log Out
                   </MenuItem>
                 </MenuContent>

@@ -53,7 +53,7 @@ const ProfilePage = () => {
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)  
     const [ isEditNameClick, setIsEditNameClick ] = React.useState<boolean>(false)
     const [ isEditBioClick, setIsEditBioClick ] = React.useState<boolean>(false)
-    const { userName, userId, profilePicture, bio,  } = useUserStore() || { userName: '', userId: 0, profilePicture: '', bio: '' }
+    const { userName, userId, bio,  } = useUserStore() || { userName: '', userId: 0, bio: '' }
     const [ newName, setNewName ] = React.useState<string>(userName || '')
     const [ newBio, setNewBio ] = React.useState<string>(bio || 'Gago')
     
@@ -79,11 +79,18 @@ const ProfilePage = () => {
         }
     })
 
+    const [ friendList, setFriends ] = React.useState<{
+        id: number | null,
+        userName: string | null,
+        profilePicture: string | null
+    }[]>([])
+
 
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const response = await api.get(`/profile/${username}`)
+                const userApi = api('user')
+                const response = await userApi.get(`/profile/${username}`)
                 console.log('response', response.data)
                 setSearchedUserProfileData(response.data[0])
             }
@@ -93,8 +100,24 @@ const ProfilePage = () => {
         }
         fetchUserProfile()
         console.log('Search user profile data', searchedUserProfileData)
-    }, [username])
+    }, [username, userName])
 
+    useEffect(() => {
+        const fetchUserFriends = async (userFilter: number) => {
+            try {
+                const friendshipApi = api('friendship')
+                const response = await friendshipApi.get('/friends', {
+                    params: { userId: userFilter }
+                })
+                console.log('Friendsa', response.data)
+                setFriends(response.data)
+            }
+            catch (err) {
+                console.error(err)
+            }
+        }
+        fetchUserFriends(searchedUserProfileData.id)
+    }, [searchedUserProfileData.id])
     
 
     const fileUpload = useFileUpload({
@@ -120,7 +143,8 @@ const ProfilePage = () => {
 
         const file = fileUpload.acceptedFiles[0]
         try {
-            const response = await api.patch('/edit-profile', {
+            const friendShipApi = api('friendship')
+            const response = await friendShipApi.patch('/edit-profile', {
                 userId, 
                 username: newName,
                 bio: newBio,
@@ -140,7 +164,8 @@ const ProfilePage = () => {
 
     const handleAddFriend = async () => {
         try {
-            const response = await api.post('/send-friend-request', {
+            const friendshipApi = api('friendship')
+            const response = await friendshipApi.post('/send-friend-request', {
                 receiverId: searchedUserProfileData.id,
             })
             alert('Friend request sent')
@@ -155,7 +180,8 @@ const ProfilePage = () => {
     
     const handleAcceptFriend = async () => {
         try {
-            const response = await api.patch('/accept-friend-request', {
+            const friendshipApi = api('friendship')
+            const response = await friendshipApi.patch('/accept-friend-request', {
                 friendshipId: searchedUserProfileData.isFriend.id,
                 receiverId: searchedUserProfileData.id
             })
@@ -171,7 +197,8 @@ const ProfilePage = () => {
 
     const handleCancelRequest = async () => {
         try {
-            const response = await api.delete('/decline-friend-request', {
+            const friendshipApi = api('friendship')
+            const response = await friendshipApi.delete('/decline-friend-request', {
                 data: {
                     friendshipId: searchedUserProfileData.isFriend.id,
                     receiverId: searchedUserProfileData.id
@@ -205,11 +232,9 @@ const ProfilePage = () => {
                                     <Card.Description fontSize='1rem'>981 friends</Card.Description>
                                     <Stack direction='row' gap='30rem' align='center'>
                                         <AvatarGroup>
-                                            <Avatar name='Ryan Florence' src='https://bit.ly/ryan-florence' />
-                                            <Avatar name='Segun Adebayo' src='https://bit.ly/sage-adebayo' />
-                                            <Avatar name='Kent Dodds' src='https://bit.ly/kent-c-dodds' />
-                                            <Avatar name='Prosper Otemuyiwa' src='https://bit.ly/prosper-baba' />
-                                            <Avatar name='Christian Nwamba' src='https://bit.ly/code-beast' />
+                                            {(searchedUserProfileData.isFriend.status === true || searchedUserProfileData.isFriend.status === 'accepted') && friendList.map((friend, index) => (
+                                                <Avatar src={friend.profilePicture || 'https://bit.ly/sage-adebayo'} name={friend.userName || 'Gago'} key={index} />
+                                            ))}
                                         </AvatarGroup>
                                         <Stack direction='row' gap='2' align='center'>
                                             {searchedUserProfileData.username === userName ? (

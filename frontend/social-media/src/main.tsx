@@ -9,6 +9,7 @@ import HomePage from './HomePage.tsx'
 import { PrivateLayout } from './layouts/PrivateLayout.tsx'
 import { AuthProviderWrapper } from './AuthProviderWrapper.tsx'
 import ProfilePage from './ProfilePage.tsx'
+import Conversation from './Conversation.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -23,6 +24,8 @@ createRoot(document.getElementById('root')!).render(
           <Route element={<PrivateLayout />}>
             <Route path='/home' element={<HomePage />} />
             <Route path=':username' element={<ProfilePage />} />
+            <Route path='/messages' element={<Conversation />} />
+            <Route path='/messages/:conversationId' element={<Conversation />} />
           </Route>
         </Routes>
         </AuthProviderWrapper>

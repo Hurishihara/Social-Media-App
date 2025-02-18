@@ -16,7 +16,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                await api.get('/check-auth');
+                const authApi = api('auth');
+                await authApi.get('/check-auth');
                 setIsAuthenticated(true);
             }
             catch {

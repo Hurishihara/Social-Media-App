@@ -31,7 +31,12 @@ const LoginPage = () => {
     e.preventDefault()
 
     try {
-      const response = await api.post('/login', { email, password })
+      const loginApi = api('auth')
+      const response = await loginApi.post('/login', {
+        email,
+        password
+      })
+      console.log(response.data)
       setUserId(response.data.userId)
       setUserName(response.data.userName)
       setProfilePicture(response.data.profilePicture)

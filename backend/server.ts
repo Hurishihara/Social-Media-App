@@ -26,7 +26,6 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 }))
 
-app.use('/api', fileUpload)
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

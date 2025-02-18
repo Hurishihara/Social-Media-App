@@ -1,3 +1,4 @@
+import { create } from "domain"
 import { relations, sql } from "drizzle-orm"
 import { integer, pgTable, serial, text, timestamp, unique, varchar, boolean, index, pgEnum } from "drizzle-orm/pg-core"
 
@@ -67,6 +68,25 @@ export const NotificationsTable = pgTable('notifications', {
     unique_table: unique().on(table.receiver_id, table.sender_id, table.notification_type)
 }])
 
+export const ConversationsTable = pgTable('conversations', {
+    id: serial('id').primaryKey(),
+    user_one_id: integer('user_one_id').references(() => UsersTable.id).notNull(),
+    user_two_id: integer('user_two_id').references(() => UsersTable.id).notNull(),
+    create_at: timestamp('created_at').defaultNow().notNull()
+}, (table) => [{
+    unique_table: unique().on(table.user_one_id, table.user_two_id)
+}])
+
+export const MessagesTable = pgTable('messages', {
+    id: serial('id').primaryKey(),
+    message_content: text('message_content').notNull(),
+    created_at: timestamp('created_at').defaultNow().notNull(),
+    conversation_id: integer('conversation_id').references(() => ConversationsTable.id).notNull(),
+    message_sender_id: integer('message_sender_id').references(() => UsersTable.id).notNull(),
+    message_receiver_id: integer('message_receiver_id').references(() => UsersTable.id).notNull(),
+    is_read: boolean('is_read').default(false).notNull()
+})
+
 
 // Relations
 
@@ -86,6 +106,18 @@ export const UsersTableRelations = relations(UsersTable, ({ many }) => ({
     notification_receiver: many(NotificationsTable, {
         relationName: 'notification_receiver',
     }),
+    conversation_user_one: many(ConversationsTable, {
+        relationName: 'conversation_user_one'
+    }),
+    conversation_user_two: many(ConversationsTable, {
+        relationName: 'conversation_user_two'
+    }),
+    message_sender: many(MessagesTable, {
+        relationName: 'message_sender'
+    }),
+    message_receiver: many(MessagesTable, {
+        relationName: 'message_receiver'
+    })
 }))
 
 export const FriendshipsTableRelations = relations(FriendshipsTable, ({ one }) => ({
@@ -159,4 +191,39 @@ export const NotificationsTableRelations = relations(NotificationsTable, ({ one 
         fields: [NotificationsTable.related_friendship_id],
         references: [UsersTable.id],
     })
+}))
+
+export const ConversationsTableRelations = relations(ConversationsTable, ({ one }) => ({
+    userOne: one(UsersTable, {
+        fields: [ConversationsTable.user_one_id],
+        references: [UsersTable.id],
+        relationName: 'conversation_user_one'
+    }),
+    userTwo: one(UsersTable, {
+        fields: [ConversationsTable.user_two_id],
+        references: [UsersTable.id],
+        relationName: 'conversation_user_two'
+    }),
+    conversation: one(MessagesTable, {
+        fields: [ConversationsTable.id],
+        references: [MessagesTable.conversation_id]
+    })
+}))
+
+export const MessagesTableRelations = relations(MessagesTable, ({ one }) => ({
+    conversation: one(ConversationsTable, {
+        fields: [MessagesTable.conversation_id],
+        references: [ConversationsTable.id]
+    }),
+    sender: one(UsersTable, {
+        fields: [MessagesTable.message_sender_id],
+        references: [UsersTable.id],
+        relationName: 'message_sender'
+    }),
+    receiver: one(UsersTable, {
+        fields: [MessagesTable.message_receiver_id],
+        references: [UsersTable.id],
+        relationName: 'message_receiver'
+    }),
+
 }))

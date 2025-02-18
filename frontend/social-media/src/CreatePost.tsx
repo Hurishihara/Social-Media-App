@@ -55,8 +55,8 @@ const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
         console.log('file', file)
         console.log('content', content)
         console.log('userId', userId)
-
-        const response = await api.post('/create-post', {
+        const postApi = api('post')
+        const response = await postApi.post('/create-post', {
             userId,
             content,
             picture: file
