@@ -9,7 +9,6 @@ class ConversationService {
             user_two_id: userTwoId
         }).returning({
             id: ConversationsTable.id,
-            userTwoId: ConversationsTable.user_two_id
         })
         
         return conversation[0]
@@ -50,6 +49,7 @@ class ConversationService {
                 return {
                     id: conversation.id,
                     user: {
+                        id: conversation.userTwo.id,
                         username: conversation.userTwo.username,
                         profilePicture: conversation.userTwo.profile_picture
                     }
@@ -59,6 +59,7 @@ class ConversationService {
                 return {
                     id: conversation.id,
                     user: {
+                        id: conversation.userOne.id,
                         username: conversation.userOne.username,
                         profilePicture: conversation.userOne.profile_picture
                     }

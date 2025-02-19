@@ -1,4 +1,4 @@
-import { Card, Grid, GridItem, List, Box, Flex, Stack, Button, Textarea, Input, IconButton } from '@chakra-ui/react'
+import { Card, Grid, GridItem, List, Box, Flex, Stack, Button, Textarea, Input, IconButton, Center } from '@chakra-ui/react'
 import { Avatar } from './src/components/ui/avatar'
 import { useNavigate, useParams } from 'react-router'
 import Navbar from './subpages/Navbar'
@@ -10,12 +10,14 @@ import { useUserStore } from '../store/user.store'
 import { LuSmile } from "react-icons/lu";
 import { LuSendHorizontal } from "react-icons/lu";
 import { formatDate } from './PostsList'
+import { useSocket } from './SocketContext'
 
 const Conversation = () => {
     
     type ConversationType = {
         id: number,
         user: {
+            id: number,
             profilePicture: string,
             username: string
         }
@@ -33,8 +35,18 @@ const Conversation = () => {
         }
     }
 
+    interface EmojiData {
+        id: string,
+        keywords: string[],
+        name: string,
+        native: string,
+        shortcodes: string,
+        unified: string
+    }
+
     const { userId } = useUserStore()
     const navigate = useNavigate()
+    const socket = useSocket()
     const { conversationId } = useParams<{ conversationId: string }>() 
 
     const [conversations, setConversations] = React.useState<ConversationType[]>([])
@@ -60,22 +72,39 @@ const Conversation = () => {
                 setUserMessage(response.data)
             }
             getMessages()
-        } 
+        }
+        socket?.on('new-message', (message: MessageType) => {
+            setUserMessage((prevMessage) => [...prevMessage, message])
+        })
+
+        return () => {
+            socket?.off('new-message')
+        }
     }, [conversationId])
     
+
+    const handleSendMessage = async () => {
+       try {
+        const messageApi = api('message')
+        const response = await messageApi.post('/send-message', {
+            conversationId: conversationId,
+            receiverId: conversations.find(conversation => conversation.id === Number(conversationId))?.user.id,
+            content: message
+        })
+        console.log(response.data)
+        setUserMessage((prevMessage) => [...prevMessage, response.data])
+        setMessage('')
+       }
+       catch (err) {
+           console.error('Error sending message', err)
+       }
+    }
 
     const onClickConversation = (conversationId: number) => {
         navigate(`/messages/${conversationId}`)
     }
 
-    interface EmojiData {
-        id: string,
-        keywords: string[],
-        name: string,
-        native: string,
-        shortcodes: string,
-        unified: string
-    }
+    
 
     const handleSelectEmoji = (emoji: EmojiData) => {
         setMessage((prevMessage) => prevMessage + emoji.native)
@@ -104,6 +133,25 @@ const Conversation = () => {
                     </Card.Body>
                 </Card.Root>
             </GridItem>
+            {!conversationId ? (
+                <GridItem colSpan={9}>
+                    <Center h='92.8vh'>
+                        <Stack gap={1} direction='column'>
+                            <Box fontSize='2.7rem' fontWeight='semibold'>
+                                Select a message
+                            </Box>
+                            <Box color='gray.500' fontSize='1.1rem'>
+                                Revisit an old chat, begin a fresh discussion, <br /> or go with the flow. The choice is yours.
+                            </Box>
+                            <Box>
+                                <Button mt='1.5rem' bgColor='blue.400' color='white' borderRadius='2rem' p='1.5rem' w='13rem' _hover={{ bgColor: 'blue.500' }} fontSize='1.1rem' fontWeight='semibold'>
+                                    New message
+                                </Button>
+                            </Box>
+                        </Stack>
+                    </Center>
+                </GridItem>
+            ): userMessage.length > 0 ? (
                 <GridItem colSpan={9}>
                     <Card.Root minH='92.8vh' maxH='92.8vh'>
                         <Card.Body overflowY='auto' p={0}>
@@ -149,7 +197,7 @@ const Conversation = () => {
                                     <LuSmile />
                                 </IconButton>
                                 <Input w='64.5vw' placeholder='Start a new message...' fontSize='1.1rem' _focus={{ outline: 'none' }} borderStyle='none'  value={message} onChange={(e) => setMessage(e.target.value)} />
-                                <IconButton size='lg' variant='plain'>
+                                <IconButton size='lg' variant='plain' onClick={handleSendMessage}>
                                     <LuSendHorizontal />
                                 </IconButton>
                         </Stack>
@@ -167,6 +215,43 @@ const Conversation = () => {
                         </Card.Footer>
                     </Card.Root>
                 </GridItem>
+            ) : (
+                <GridItem colSpan={9}>
+                    <Card.Root minH='92.8vh' maxH='92.8vh'>
+                        <Card.Body overflowY='auto' p={0}>
+                            <Box bg='rgba(255, 255, 255, 0.5)' borderRadius='md' >
+                                <Stack direction='row' align='center' gap={3} pl='1rem' py='1rem'>
+                                    {<Avatar src={conversations.find(conversation => conversation.id === Number(conversationId))?.user?.profilePicture} />}
+                                    <Card.Title> {conversations.find(conversation => conversation.id === Number(conversationId))?.user?.username} </Card.Title>    
+                                </Stack>   
+                            </Box>
+                            
+                        </Card.Body>
+                        <Card.Footer  pl='1rem' py='1rem'>
+                        <Stack direction='row' align='center' gap={2} p='1rem' bgColor='#EFF3F4' borderRadius='2rem'>
+                                <IconButton size='lg' variant='plain' onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+                                    <LuSmile />
+                                </IconButton>
+                                <Input w='64.5vw' placeholder='Start a new message...' fontSize='1.1rem' _focus={{ outline: 'none' }} borderStyle='none'  value={message} onChange={(e) => setMessage(e.target.value)} />
+                                <IconButton size='lg' variant='plain' onClick={handleSendMessage}>
+                                    <LuSendHorizontal />
+                                </IconButton>
+                        </Stack>
+                        {showEmojiPicker && (
+                                <Box position='absolute' bottom='7rem'>
+                                    <Picker 
+                                    set='apple'
+                                    perLine='9'
+                                    navPosition='top'
+                                    previewEmoji='point_up'
+                                    onEmojiSelect={handleSelectEmoji}
+                                    />
+                                </Box>
+                        )}
+                        </Card.Footer>
+                    </Card.Root>
+                </GridItem>
+            )}
        </Grid>
     </>
   )

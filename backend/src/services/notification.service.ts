@@ -15,8 +15,6 @@ const notificationTexts: Record<NotificationType, (senderUserName: string) => st
 
 class NotificationService {
     async createNotification(notificationType: NotificationType, receiverId: number, senderId: number, relatedLikeId?: number | null, relatedFriendshipId?: number | null): Promise<any> {
-        
-
         const notifications = await db.insert(NotificationsTable).values({
             notification_type: notificationType,
             receiver_id: receiverId,

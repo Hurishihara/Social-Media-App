@@ -33,7 +33,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/api', router);
 
 io.on('connection', (socket) => {
-    console.log('A user connected', socket.id);
     userController.SearchUserWebSocket(socket);
     handleUserConnection(socket);
 })

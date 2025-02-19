@@ -28,7 +28,8 @@ const CustomDialog = ({ post, open, setOpen }: { post: Post, open: boolean, setO
         e.preventDefault()
         
         try {
-            const response = await api.patch('/edit-post', {
+            const postApi = api('post')
+            const response = await postApi.patch('/edit-post', {
                 postId: post.post.postId,
                 content: editedContent
             })

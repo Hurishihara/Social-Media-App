@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import messageService from "../services/message.service";
+import { userSockets } from "../utils/socket";
+import { io } from "../../server";
 
 class MessageController {
     async createMessage(req: Request, res: Response): Promise<void> {
@@ -12,6 +14,10 @@ class MessageController {
             }
             const message = await messageService.createMessage(conversationId, currentUser, receiverId, content);
             res.status(200).json(message);
+            const authorSocketId = userSockets[receiverId];
+            if (authorSocketId) {
+                io.to(authorSocketId).emit('new-message', message)
+            }
         }
         catch(err) {
             console.error('Error creating message', err)

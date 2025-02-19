@@ -12,11 +12,11 @@ import { InputGroup } from '@/src/components/ui/input-group';
 import { useNavigate } from 'react-router';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/src/components/ui/menu';
 import { api } from '@/utils/axiosConfig';
-import { socket } from '../utils/socket.io'
 import { useUserStore } from '../../store/user.store';
 import { usePostStore } from '../../store/post.store';
 import { useNotificationStore, Notification } from '../../store/notification.store';
 import { formatDate } from '../PostsList'
+import { useSocket } from '@/SocketContext';
 
 const Navbar = () => {
 
@@ -24,10 +24,10 @@ const Navbar = () => {
   const [ query, setQuery ] = useState<string>('')
   const [ results, setResults ] = useState<any[]>([])
   const [ debounceTimeout, setDebounceTimeout ] = useState<NodeJS.Timeout | null>(null);
-
   const navigate = useNavigate()
   const { userName, userId, profilePicture, clearUser } = useUserStore()
   const { clearPosts } = usePostStore()
+  const socket = useSocket()
   const { userNotifications, setUserNotifications, clearNotifications } = useNotificationStore()
  
 
@@ -37,14 +37,13 @@ const Navbar = () => {
 
   const handleLogOut = async (): Promise<void> => {
     try {
-      socket.disconnect()
+      socket?.disconnect()
       const authApi = api('auth')
       const response = await authApi.post('/logout')
       navigate('/')
       clearUser()
       clearPosts()
       clearNotifications()
-      alert(response.data.message)
     }
     catch (error) {
       console.log(error)
@@ -68,53 +67,48 @@ const Navbar = () => {
     }
     fetchNotifications(userId ?? undefined)
 
-    if (userId) {
-      socket.emit('join-room', userId)
-    }
-
-    socket.on('searchResults', (data) => {
+    socket?.on('searchResults', (data) => {
       setResults(data)
       console.log('data', data)
     })
-    socket.on('like-notification', (data) => {
+    socket?.on('like-notification', (data) => {
       console.log('like data', data)
       const currentNotification = useNotificationStore.getState().userNotifications
       const updatedNotifications = [data, ...currentNotification]
       setUserNotifications(updatedNotifications)
     })
-    socket.on('unlike-notification', (data) => {
+    socket?.on('unlike-notification', (data) => {
       console.log('unlike data', data)
       const currentNotification = useNotificationStore.getState().userNotifications
-      const updatedNotifications = currentNotification.filter(notification => notification.id === data.id)
+      console.log('current notification', currentNotification)
+      const updatedNotifications = currentNotification.filter(notification => notification.id !== data.id)
+      console.log('updated notification', updatedNotifications)
       setUserNotifications(updatedNotifications)
     })
-    socket.on('friend-request-notification', (data) => {
+    socket?.on('friend-request-notification', (data) => {
       const currentNotification = useNotificationStore.getState().userNotifications
       const updatedNotifications = [data, ...currentNotification]
       setUserNotifications(updatedNotifications)
     })
-    socket.on('friend-accept-notification', (data) => {
+    socket?.on('friend-accept-notification', (data) => {
       const currentNotification = useNotificationStore.getState().userNotifications
       const updatedNotifications = [data, ...currentNotification]
       setUserNotifications(updatedNotifications)
     })
-    socket.on('cancel-friend-request', (data) => {
+    socket?.on('cancel-friend-request', (data) => {
       const currentNotification = useNotificationStore.getState().userNotifications
-      const updatedNotifications = currentNotification.filter(notification => notification.id === data.id)
+      const updatedNotifications = currentNotification.filter(notification => notification.id !== data.id)
       setUserNotifications(updatedNotifications)
     })
 
-    if (userId && !socket.connected) {
-      socket.connect()
-    }
 
     return () => {
-      socket.off('searchResults')
-      socket.off('like-notification')
-      socket.off('unlike-notification')
-      socket.off('friend-request-notification')
-      socket.off('friend-accept-notification')
-      socket.off('cancel-friend-request')
+      socket?.off('searchResults')
+      socket?.off('like-notification')
+      socket?.off('unlike-notification')
+      socket?.off('friend-request-notification')
+      socket?.off('friend-accept-notification')
+      socket?.off('cancel-friend-request')
     }
   }, [userId])
 

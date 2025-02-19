@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db/db";
-import { MessagesTable } from "../drizzle/schema";
+import { MessagesTable, UsersTable } from "../drizzle/schema";
+import { profile } from "console";
 
 class MessageService {
     async createMessage(conversationId: number, senderId: number, receiverId: number, content: string): Promise<any> {
@@ -14,9 +15,34 @@ class MessageService {
             message_content: MessagesTable.message_content,
             conversationId: MessagesTable.conversation_id,
             senderId: MessagesTable.message_sender_id,
-            receiverId: MessagesTable.message_receiver_id
+            receiverId: MessagesTable.message_receiver_id,
+            createdAt: MessagesTable.created_at,
+            isRead: MessagesTable.is_read
         })
-        return message[0]
+
+        const user = await db.query.UsersTable.findFirst({
+            where: eq(UsersTable.id, message[0].senderId),
+            columns: {
+                id: true,
+                username: true,
+                profile_picture: true
+            }
+        })
+
+        if (!user) return null
+
+        return {
+            id: message[0].id,
+            content: message[0].message_content,
+            createdAt: message[0].createdAt,
+            isRead: message[0].isRead,
+            sender: {
+                id: user.id,
+                username: user.username,
+                profilePicture: user.profile_picture
+            }
+
+        }
     }
     async getMessages(conversationId: number): Promise<any> {
         const messages = await db.query.MessagesTable.findMany({
@@ -37,7 +63,7 @@ class MessageService {
                 }
             }
         })
-        if (messages.length === 0) return null
+        if (messages.length === 0) return []
         
         return messages.map(message => {
             return {

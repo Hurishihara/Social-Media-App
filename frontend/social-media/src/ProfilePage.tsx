@@ -46,9 +46,10 @@ import { useUserStore } from '../store/user.store';
 import { LuMessageCircleMore, LuX } from 'react-icons/lu'
 import { AiOutlineUserAdd } from "react-icons/ai";
 import { api } from './utils/axiosConfig'
-import { useParams } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 
 const ProfilePage = () => {
+    const navigate = useNavigate()
     const { username } = useParams()
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)  
     const [ isEditNameClick, setIsEditNameClick ] = React.useState<boolean>(false)
@@ -215,8 +216,18 @@ const ProfilePage = () => {
         }
     }
 
-
-
+    const handleMessageUser = async () => {
+        try {
+            const conversationApi = api('conversation')
+            const response = await conversationApi.post('/create-conversation', {
+                userTwoId: searchedUserProfileData.id
+            })
+            navigate(`/messages/${response.data.id}`)
+        }
+        catch(err) {
+            console.error(err)
+        }
+    }
 
     return (
         <>
@@ -329,7 +340,7 @@ const ProfilePage = () => {
                                                                 <FaUserCheck />
                                                                 Accept request
                                                             </Button>
-                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='blue.400' color='white' >
+                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='blue.400' color='white' onClick={handleMessageUser} >
                                                                 Message
                                                             </Button>
                                                             </>
@@ -339,7 +350,7 @@ const ProfilePage = () => {
                                                                 <FaUserCheck />
                                                                 Pending request
                                                             </Button>
-                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='gray.200' color='black' >
+                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='gray.200' color='black' onClick={handleMessageUser} >
                                                                 Message
                                                             </Button>
                                                         </> 
@@ -350,7 +361,7 @@ const ProfilePage = () => {
                                                                 <AiOutlineUserAdd color='black' />
                                                                 Friends
                                                             </Button>
-                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='blue.500' color='white' >
+                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='blue.500' color='white' onClick={handleMessageUser} >
                                                                 <LuMessageCircleMore />
                                                                 Message
                                                             </Button>
@@ -361,7 +372,7 @@ const ProfilePage = () => {
                                                                 <AiOutlineUserAdd color='white' />
                                                                 Add Friend
                                                             </Button>
-                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='gray.200' color='black' >
+                                                            <Button size='sm' variant='subtle' borderRadius='0.5rem' bgColor='gray.200' color='black' onClick={handleMessageUser} >
                                                                 <LuMessageCircleMore />
                                                                 Message
                                                             </Button>

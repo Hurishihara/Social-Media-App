@@ -11,6 +11,7 @@ export function handleUserConnection(socket: Socket) {
         }
         userSockets[userId] = socket.id;
         console.log(`User ${userId} connected with socket ${socket.id}`);
+        console.log('join room user sockets', userSockets);
     })
 
     socket.on('disconnect', () => {
@@ -18,6 +19,7 @@ export function handleUserConnection(socket: Socket) {
             if (value === socket.id) {
                 delete userSockets[key];
                 console.log(`User ${key} disconnected`);
+                console.log('disconnect user sockets', userSockets);
             }
         })
     })

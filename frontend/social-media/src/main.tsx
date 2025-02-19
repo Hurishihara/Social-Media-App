@@ -10,12 +10,14 @@ import { PrivateLayout } from './layouts/PrivateLayout.tsx'
 import { AuthProviderWrapper } from './AuthProviderWrapper.tsx'
 import ProfilePage from './ProfilePage.tsx'
 import Conversation from './Conversation.tsx'
+import { SocketProviderWrapper } from './SocketProviderWrapper.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <Provider>
         <AuthProviderWrapper>
+        <SocketProviderWrapper>
         <Routes>
           <Route element={<PublicLayout />}>
             <Route index element={<LoginPage />}/>
@@ -28,6 +30,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path='/messages/:conversationId' element={<Conversation />} />
           </Route>
         </Routes>
+        </SocketProviderWrapper>
         </AuthProviderWrapper>
       </Provider>
     </BrowserRouter>

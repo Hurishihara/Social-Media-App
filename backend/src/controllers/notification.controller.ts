@@ -5,9 +5,7 @@ class NotificationController {
     async getNotifications(req: Request, res: Response): Promise<void> {
         try {
             const { userId } = req.query;
-            console.log('Notification controller userId', userId)
             const notifications = await notificationService.getNotifications(Number(userId))
-            console.log('Notification controller notifications', notifications)
             res.status(200).json(notifications)
         }
         catch (err) {

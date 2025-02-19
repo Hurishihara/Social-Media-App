@@ -25,7 +25,6 @@ class LikeController {
             else {
                 if (authorSocketId) {
                     const notification = await notificationService.createNotification('like', author, currentUser, response.id)
-                    console.log('create notification:', notification)
                     io.to(authorSocketId).emit('like-notification', notification[0])
                 }
             }
