@@ -7,33 +7,24 @@ import {
      GridItem, 
      Image, 
      Stack, 
-     Box, 
      Flex, 
      Icon, 
      Separator, 
-     Text, 
      FileUploadRootProvider, 
      useFileUpload, 
      FileUploadHiddenInput, 
-     useEditable, 
      Editable, 
      IconButton,
-     Spacer
     } from '@chakra-ui/react'
 import {
     DialogTrigger,
     DialogHeader,
     DialogTitle,
-    DialogBody,
     DialogContent,
     DialogRoot,
     DialogCloseTrigger,
-    DialogFooter
 } from './src/components/ui/dialog'
 import {
-    FileUpload,
-    FileUploadList,
-    FileUploadRoot,
     FileUploadTrigger
 } from './src/components/ui/file-upload'
 import { Avatar, AvatarGroup } from './src/components/ui/avatar'
@@ -47,10 +38,12 @@ import { LuMessageCircleMore, LuX } from 'react-icons/lu'
 import { AiOutlineUserAdd } from "react-icons/ai";
 import { api } from './utils/axiosConfig'
 import { useNavigate, useParams } from 'react-router'
+import { Post, usePostStore } from '../store/post.store'
 
 const ProfilePage = () => {
     const navigate = useNavigate()
     const { username } = useParams()
+    const { setPosts } = usePostStore()
     const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)  
     const [ isEditNameClick, setIsEditNameClick ] = React.useState<boolean>(false)
     const [ isEditBioClick, setIsEditBioClick ] = React.useState<boolean>(false)
@@ -92,7 +85,6 @@ const ProfilePage = () => {
             try {
                 const userApi = api('user')
                 const response = await userApi.get(`/profile/${username}`)
-                console.log('response', response.data)
                 setSearchedUserProfileData(response.data[0])
             }
             catch (err) {
@@ -100,7 +92,6 @@ const ProfilePage = () => {
             }
         }
         fetchUserProfile()
-        console.log('Search user profile data', searchedUserProfileData)
     }, [username, userName])
 
     useEffect(() => {
@@ -110,7 +101,6 @@ const ProfilePage = () => {
                 const response = await friendshipApi.get('/friends', {
                     params: { userId: userFilter }
                 })
-                console.log('Friendsa', response.data)
                 setFriends(response.data)
             }
             catch (err) {
@@ -118,6 +108,19 @@ const ProfilePage = () => {
             }
         }
         fetchUserFriends(searchedUserProfileData.id)
+    }, [searchedUserProfileData.id])
+
+    useEffect(() => {
+        const fetchUserPosts = async () => {
+            const userApi = api('user')
+            const response = await userApi.get(`/profile/${username}/posts`)
+            const updatedPosts = response.data.map((post: Post) => ({
+                ...post,
+                isLiked: post.likes.some((like: { likeId: number, userId: number, createdAt: string }) => like.userId === userId) ? true : false
+            }))
+            setPosts(updatedPosts)
+        }
+        fetchUserPosts()
     }, [searchedUserProfileData.id])
     
 
@@ -408,7 +411,7 @@ const ProfilePage = () => {
                     {(searchedUserProfileData.isFriend.status === 'accepted' || searchedUserProfileData.isFriend.status === true) && (
                         <>
                             <CreatePost createPostButtonSize={'34rem'} />
-                            <PostsList userNameFilter={searchedUserProfileData.username} />
+                            <PostsList  />
                         </>
                     )}
                 </GridItem>

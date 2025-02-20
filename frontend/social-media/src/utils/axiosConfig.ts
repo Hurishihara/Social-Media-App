@@ -9,6 +9,7 @@ const apiRoute: Record<string, string> = {
     notification: '/notification',
     post: '/post',
     user: '/user',
+    comment: '/comment',
 }
 
 export const api = (route: string) => {

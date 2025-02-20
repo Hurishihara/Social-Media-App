@@ -80,7 +80,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
                         <form id='create-post' method='post' onSubmit={handleCreatePost} encType='multipart/form-data'>
                         <DialogRoot size='md' placement='center'>
                             <DialogTrigger asChild>
-                                <Button borderRadius='3rem' w={!createPostButtonSize ? '28rem' : createPostButtonSize} size='md' variant='subtle' color='gray.500'>
+                                <Button borderRadius='3rem' w={createPostButtonSize} size='md' variant='subtle' color='gray.500'>
                                     Create a new post...
                                 </Button>
                             </DialogTrigger>

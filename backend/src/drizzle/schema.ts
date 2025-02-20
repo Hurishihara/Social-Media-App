@@ -1,4 +1,3 @@
-import { create } from "domain"
 import { relations, sql } from "drizzle-orm"
 import { integer, pgTable, serial, text, timestamp, unique, varchar, boolean, index, pgEnum } from "drizzle-orm/pg-core"
 

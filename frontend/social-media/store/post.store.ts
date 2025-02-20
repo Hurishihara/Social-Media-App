@@ -14,7 +14,18 @@ export interface Post {
    authorName: string
    authorProfilePicture: string
    isLiked: boolean
-   likes: any[]
+   likes: {
+    likeId: number,
+    userId: number,
+    createdAt: string,
+   }[],
+   comments: {
+    commentId: number,
+    commentContent: string,
+    commentAuthorId: number,
+    commentAuhorName: string,
+    commentAuthorProfilePicture: string,
+   }[]
 }
 
 interface PostStore {

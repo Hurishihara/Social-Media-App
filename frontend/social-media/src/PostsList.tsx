@@ -1,4 +1,4 @@
-import { Card, Icon, List, Stack, Image, Text, IconButton, Flex, Separator, Button, DialogTrigger, Box } from '@chakra-ui/react'
+import { Card, Icon, List, Stack, Image, Text, IconButton, Flex, Separator, Button, Box, Input } from '@chakra-ui/react'
 import {
     MenuContent,
     MenuItem,
@@ -7,7 +7,6 @@ import {
   } from './src/components/ui/menu'
 import { Avatar } from './src/components/ui/avatar'
 import React, { useEffect, useState }from 'react'
-import { IoPersonSharp } from 'react-icons/io5'
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { MdDeleteForever } from "react-icons/md";
 import { FaHeart, FaRegHeart, FaRegComment } from "react-icons/fa";
@@ -17,7 +16,9 @@ import { Post, usePostStore } from '../store/post.store'
 import CustomDialog from './CustomDialog';
 import { useUserStore } from '../store/user.store';
 import { socket } from './utils/socket.io'
-
+import { DialogBody, DialogContent, DialogHeader, DialogRoot, DialogTitle, DialogTrigger, DialogFooter } from './src/components/ui/dialog'
+import Picker from '@emoji-mart/react'
+import { LuSendHorizontal, LuSmile } from 'react-icons/lu'
 
 
 
@@ -39,12 +40,24 @@ export const formatDate = (dateString: string): string => {
 }
 
 
-const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
+const PostsList = () => {
     
     const { posts, setPosts } = usePostStore()
-    const { userId, userName } = useUserStore()
+    const { userId, userName, profilePicture } = useUserStore()
     const [ selectedPost, setSelectedPost ] = useState(null)
     const [ open, setOpen ] = useState<Boolean>(false)
+    const [ comments, setComments ] = useState([])
+    const [ userCommment, setUserComment ] = useState('')
+    const [ showEmojiPicker, setShowEmojiPicker ] = useState(false)
+
+    interface EmojiData {
+        id: string,
+        keywords: string[],
+        name: string,
+        native: string,
+        shortcodes: string,
+        unified: string
+    }
 
     const handleLike = async (e: React.MouseEvent<HTMLButtonElement>, postId: number): Promise<void> => {
         e.preventDefault()
@@ -65,7 +78,6 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
             return post
         })
         setPosts(updatedPost)
-        console.log('updatedPost', updatedPost)
         
         try {
             const likedPost = updatedPost.find(post => post.post.postId === postId)
@@ -73,6 +85,20 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
                 const likeApi = api('like')
                 await likeApi.post('/like-post', { postId: likedPost.post.postId, userId: userId, author: likedPost.authorId })
             }
+        }
+        catch(err) {
+            console.error(err)
+        }
+    }
+
+    const handleComment = async (postId: number): Promise<void> => {
+        try {
+            const commentApi = api('comment')
+            const response = await commentApi.post('/create-comment', {
+                content: userCommment,
+                postId: postId
+            })
+            console.log(response)
         }
         catch(err) {
             console.error(err)
@@ -97,26 +123,11 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
         }
     }
 
-    useEffect(() => {
-        const fetchPosts = async (userNameFilter?: string) => {
-            try {
-                const postApi = api('post')
-                const response = await postApi.get('/posts', {
-                    params: userNameFilter ? { userName: userNameFilter } : {}
-                })
-                const updatedPosts = response.data.map((post: Post) => ({
-                    ...post,
-                    isLiked: post.likes.some((like: any) => like.userId === userId) ? true : false
-                }))
-                setPosts(updatedPosts)
-            }
-            catch(err) {
-                console.error(err)
-            }
-            
-        }
-        fetchPosts(userNameFilter)
+    const handleSelectEmoji = (emoji: EmojiData) => {
+        setUserComment((prevComment) => prevComment + emoji.native)
+    }
 
+    useEffect(() => {
         socket.on('new-post', (newPost: Post) => {
             setPosts([newPost, ...posts])
             
@@ -131,7 +142,7 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
             socket.off('new-post')
             socket.off('delete-post')
         }
-    }, [userNameFilter])
+    }, [])
 
     
     return (
@@ -188,7 +199,103 @@ const PostsList: React.FC<PostsListProps> = ({ userNameFilter }) => {
                             <Separator variant='solid' w='100%' size='sm' mt='1rem' orientation='horizontal' />
                             <Flex justifyContent='space-around' direction='row'>
                                 <Button variant='ghost' color={!post.isLiked ? 'gray' : '#3B5998'} onClick={(event) => handleLike(event, post.post.postId)} fontSize='1rem' w='50%' fontWeight='medium'>Like</Button>
-                                <Button variant='ghost' color='gray' fontSize='1rem' w='50%' fontWeight='medium'>Comment</Button>
+                                <DialogRoot size='sm' placement='center' >
+                                    <DialogTrigger asChild>
+                                        <Button variant='ghost' color='gray' fontSize='1rem' w='50%' fontWeight='medium'>Comment</Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle align='center'> {`${post.authorName}'s Post`} </DialogTitle>
+                                            <Separator mt='1rem' mb='1rem' />
+                                            <Stack direction='row' gap='3' align='center' >
+                                                <Avatar name={post.authorName} src={post.authorProfilePicture} />
+                                                <Stack direction='column' align='flex-start' justify='center' gap='0'>
+                                                    <DialogTitle> { post.authorName }</DialogTitle>
+                                                    <Box color='gray'>
+                                                        { formatDate(post.post.createdAt) }
+                                                    </Box>
+                                                </Stack>
+                                            </Stack>
+                                        </DialogHeader>
+                                        <DialogBody>
+                                            <Box>
+                                                { post.post.content }
+                                            </Box>
+                                            <Image src={post.post.mediaURL} mt='1rem' />
+                                            <Stack direction='row' mt='2rem' gap='1.5rem' align='center'>
+                                                <Flex flexDirection='row' justify='flex-start' align='center' gap='0.3rem'>
+                                                    <Icon>
+                                                        {!post.isLiked ? <FaRegHeart /> : <FaHeart color='#3B5998' />}
+                                                    </Icon>
+                                                    <Text fontSize='1rem' fontWeight='medium'> { post.post.likesCount } </Text>
+                                                </Flex>
+                                                <Flex flexDirection='row' justify='flex-start' align='center' gap='0.3rem'>
+                                                    <Icon>
+                                                        <FaRegComment />
+                                                    </Icon>
+                                                    <Text fontSize='1rem' fontWeight='medium'> { post.post.commentsCount } </Text>
+                                                </Flex>
+                                            </Stack>
+                                            <Separator variant='solid' w='100%' size='sm' mt='1rem' orientation='horizontal' />
+                                            <Flex justifyContent='space-around' direction='row' >
+                                                <Button variant='ghost' color={!post.isLiked ? 'gray' : '#3B5998'} onClick={(event) => handleLike(event, post.post.postId)} fontSize='1rem' w='50%' fontWeight='medium'>Like</Button>
+                                                <Button variant='ghost' color='gray' fontSize='1rem' w='50%' fontWeight='medium'>Comment</Button>
+                                            </Flex>
+                                            <Separator variant='solid' w='100%' size='sm' mb='2rem' orientation='horizontal' />
+                                            <Flex direction='column' gap={2} >
+                                                {post.comments.length > 0 && (
+                                                    post.comments.map((comment: any) => (
+                                                        <Stack direction='row' gap={2} key={comment.commentId} align='center'>
+                                                            <Avatar size='sm' name={comment.commentAuthorName} src={comment.commentAuthorProfilePicture} />
+                                                            <Stack direction='column' gap={0} bgColor='#EFF3F4' borderRadius='1.5rem' align='flex-start' justify='center' p='1.3rem' h='3.5rem'>
+                                                                <Box fontSize='0.8rem' fontWeight='semibold' >
+                                                                    {comment.commentAuthorName}
+                                                                </Box>
+                                                                <Box fontSize='0.8rem' >
+                                                                    {comment.commentContent}
+                                                                </Box>
+                                                            </Stack>
+                                                        </Stack>
+                                                    ))
+                                                )}
+                                            </Flex>
+                                            <Separator variant='solid' w='100%' size='sm' mt='2rem'  orientation='horizontal' />
+                                            <Flex direction='row' justify='flex-start' align='center' gap={2} mt='1rem'>
+                                                <Box>
+                                                    <Avatar size='sm' name={userName} src={profilePicture} />
+                                                </Box>
+                                                <Stack 
+                                                direction='row' 
+                                                gap={2}  
+                                                bgColor='#EFF3F4'
+                                                align='center'
+                                                borderRadius='2rem'
+                                                p='0.3rem'
+                                                w='100%'>
+                                                    <IconButton size='sm' variant='plain' onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+                                                        <LuSmile />
+                                                    </IconButton>
+                                                    <Input placeholder='Post your comment'  _focus={{ outline: 'none'}} borderStyle='none' onChange={(e) => setUserComment(e.target.value)} />
+                                                    <IconButton size='sm' variant='plain' onClick={() => handleComment(post.post.postId)}>
+                                                        <LuSendHorizontal />
+                                                    </IconButton>
+                                                </Stack>
+                                                {showEmojiPicker && (
+                                                    <Box position='absolute' bottom='7rem'>
+                                                        <Picker 
+                                                        set='apple'
+                                                        perLine='9'
+                                                        navPosition='top'
+                                                        previewEmoji='point_up'
+                                                        onEmojiSelect={handleSelectEmoji}
+                                                        />
+                                                    </Box>
+                                                )}
+                                            </Flex>
+                                            
+                                        </DialogBody>
+                                    </DialogContent>
+                                </DialogRoot>
                             </Flex>
                         </Card.Body>
                     </Card.Root>

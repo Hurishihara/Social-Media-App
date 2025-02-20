@@ -1,6 +1,6 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, or, and, aliasedTable } from "drizzle-orm";
 import { db } from "../db/db";
-import { LikesTable, PostsTable, UsersTable } from "../drizzle/schema";
+import { CommentsTable, FriendshipsTable, LikesTable, PostsTable, UsersTable } from "../drizzle/schema";
 
 interface Post {
     postId: number;
@@ -13,81 +13,134 @@ interface Post {
 }
 
 class PostService {
-    async getPosts(userName?: string): Promise<any[]> {
-        if (!userName) {
-            const result = await db.select({
-                post: PostsTable,
-                authorId: UsersTable.id,
-                authorName: UsersTable.username,
-                authorProfilePicture: UsersTable.profile_picture,
-                likes: LikesTable
-            })
-            .from(PostsTable)
-            .innerJoin(UsersTable, eq(PostsTable.author_id, UsersTable.id))
-            .leftJoin(LikesTable, eq(PostsTable.id, LikesTable.post_id))
-            .orderBy(desc(PostsTable.created_at))
-            
-            const posts = result.reduce<Record<number, { post: Post, authorName: string, likes: any[], authorProfilePicture: string | null, authorId: number }>>(
-                (acc, row) => {
-                    const post = row.post
-                    const like = row.likes
-                    const authorName = row.authorName
-        
-                    if (!acc[post.id]) {
-                        acc[post.id] = {
-                            post: {
-                                postId: post.id,
-                                content: post.content,
-                                mediaURL: post.mediaURL,
-                                likesCount: post.likes_count,
-                                commentsCount: post.comments_count,
-                                createdAt: post.created_at,
-                                updatedAt: post.updated_at
-                            },
-                            authorName,
-                            likes: [],
-                            authorProfilePicture: row.authorProfilePicture,
-                            authorId: row.authorId
-                        }
-                    }
-                    if (like) {
-                        acc[post.id].likes.push({
-                            likeId: like.id,
-                            userId: like.user_id,
-                            createdAt: like.created_at
-                        })
-                    }
-                    return acc
-                }, 
-               {})
-            const sortedPosts = Object.values(posts).sort((a, b) => {
-                return b.post.createdAt.getTime() - a.post.createdAt.getTime()
-            })
-            return sortedPosts;
+    async getPosts(userId: number): Promise<any[]> {
+        const PostAuthorTable = aliasedTable(UsersTable, 'PostAuthor')
+        const CommentAuthorTable = aliasedTable(UsersTable, 'CommentAuthor')
 
-        }
-        
         const result = await db.select({
             post: PostsTable,
-            authorId: UsersTable.id,
-            authorName: UsersTable.username,
-            authorProfilePicture: UsersTable.profile_picture,
-            likes: LikesTable
-        })
-        .from(PostsTable)
-        .innerJoin(UsersTable, eq(PostsTable.author_id, UsersTable.id))
+            authorId: PostAuthorTable.id,
+            authorName: PostAuthorTable.username,
+            authorProfilePicture: PostAuthorTable.profile_picture,
+            likes: LikesTable,
+            comments: CommentsTable,
+            commentAuthorId: CommentAuthorTable.id,
+            commentAuthorName: CommentAuthorTable.username,
+            commentAuthorProfilePicture: CommentAuthorTable.profile_picture
+        }).from(PostsTable)
+        .innerJoin(PostAuthorTable, eq(PostsTable.author_id, PostAuthorTable.id))
         .leftJoin(LikesTable, eq(PostsTable.id, LikesTable.post_id))
+        .leftJoin(CommentsTable, eq(PostsTable.id, CommentsTable.post_id))
+        .leftJoin(CommentAuthorTable, eq(CommentsTable.user_id, CommentAuthorTable.id))
         .orderBy(desc(PostsTable.created_at))
-        .where(eq(UsersTable.username, userName))
 
-        const posts = result.reduce<Record<number, { post: Post, authorName: string, likes: any[], authorProfilePicture: string | null, authorId: number }>>(
-            (acc, row) => {
+        const filteredPost = await Promise.all(result.map(async (post: any) => {
+            if (post.authorId === userId) {
+                return post;
+            }
+            const checkIsFriend = await db.query.FriendshipsTable.findFirst({
+                where: or(
+                    and(eq(FriendshipsTable.sender_id, userId), eq(FriendshipsTable.receiver_id, post.authorId)),
+                    and(eq(FriendshipsTable.receiver_id, userId), eq(FriendshipsTable.sender_id, post.authorId))
+                ),
+                columns: {
+                    id: true,
+                    friendship_status: true,
+                    sender_id: true,
+                    receiver_id: true
+                }
+            })
+            if (checkIsFriend && checkIsFriend.friendship_status === 'accepted' ) {
+                return post;
+            }
+            return null;
+        }))
+        const listOfFilteredPosts = filteredPost.filter(post => post !== null)
+        const posts = listOfFilteredPosts.reduce<Record<number, { post: Post, authorName: String, likes: any[], comments: any[], authorProfilePicture: string | null, authorId: number }>>((acc, row) => {
+            const post = row.post
+            const like = row.likes
+            const comment = row.comments
+            const authorName = row.authorName
+            const commentAuthorId = row.commentAuthorId
+            const commentAuthorName = row.commentAuthorName
+            const commentAuthorProfilePicture = row.commentAuthorProfilePicture
+
+            if (!acc[post.id]) {
+                acc[post.id] = {
+                    post: {
+                        postId: post.id,
+                        content: post.content,
+                        mediaURL: post.mediaURL,
+                        likesCount: post.likes_count,
+                        commentsCount: post.comments_count,
+                        createdAt: post.created_at,
+                        updatedAt: post.updated_at
+                    },
+                    authorName,
+                    likes: [],
+                    comments: [],
+                    authorProfilePicture: row.authorProfilePicture,
+                    authorId: row.authorId
+                }
+            }
+            if (like && !acc[post.id].likes.some(existingLike => existingLike.likeId === like.id)) {
+                acc[post.id].likes.push({
+                    likeId: like.id,
+                    userId: like.user_id,
+                    createdAt: like.created_at
+                })
+            }
+            if (comment && !acc[post.id].comments.some(existingComment => existingComment.commentId === comment.id)) {
+                acc[post.id].comments.push({
+                    commentId: comment.id,
+                    commentContent: comment.content,
+                    commentAuthorId: commentAuthorId,
+                    commentAuthorName: commentAuthorName,
+                    commentAuthorProfilePicture: commentAuthorProfilePicture,
+                })
+            }
+            return acc
+        }, {})
+
+        const sortedPosts = Object.values(posts).sort((a, b) => {
+            return b.post.createdAt.getTime() - a.post.createdAt.getTime()
+        })
+        return sortedPosts
+    }
+
+    async getPostsByProfile(userName: string) {
+        const PostAuthorTable = aliasedTable(UsersTable, 'PostAuthor')
+        const CommentAuthorTable = aliasedTable(UsersTable, 'CommentAuthor')
+
+        const result = await db.select({
+            post: PostsTable,
+            authorId: PostAuthorTable.id,
+            authorName: PostAuthorTable.username,
+            authorProfilePicture: PostAuthorTable.profile_picture,
+            likes: LikesTable,
+            comments: CommentsTable,
+            commentAuthorId: CommentAuthorTable.id,
+            commentAuthorName: CommentAuthorTable.username,
+            commentAuthorProfilePicture: CommentAuthorTable.profile_picture
+        }).from(PostsTable)
+        .innerJoin(PostAuthorTable, eq(PostsTable.author_id, PostAuthorTable.id))
+        .leftJoin(LikesTable, eq(PostsTable.id, LikesTable.post_id))
+        .leftJoin(CommentsTable, eq(PostsTable.id, CommentsTable.post_id))
+        .leftJoin(CommentAuthorTable, eq(CommentsTable.user_id, CommentAuthorTable.id))
+        .orderBy(desc(PostsTable.created_at))
+        .where(eq(PostAuthorTable.username, userName))
+
+        const posts = result.reduce<Record<number, { post: Post, authorName: string, likes: any[], comments: any[], authorProfilePicture: string | null, authorId: number}>>((acc, row: any) => {
                 const post = row.post
                 const like = row.likes
+                const comment = row.comments
                 const authorName = row.authorName
-    
+                const commentAuthorId = row.commentAuthorId
+                const commentAuthorName = row.commentAuthorName
+                const commentAuthorProfilePicture = row.commentAuthorProfilePicture
+
                 if (!acc[post.id]) {
-                    acc[post.id] = {
+                    acc[post.id] ={
                         post: {
                             postId: post.id,
                             content: post.content,
@@ -99,27 +152,35 @@ class PostService {
                         },
                         authorName,
                         likes: [],
+                        comments: [],
                         authorProfilePicture: row.authorProfilePicture,
                         authorId: row.authorId
                     }
                 }
-                if (like) {
+                if (like && !acc[post.id].likes.some(existingLike => existingLike.likeId === like.id)) {
                     acc[post.id].likes.push({
                         likeId: like.id,
                         userId: like.user_id,
                         createdAt: like.created_at
                     })
                 }
+                if (comment && !acc[post.id].comments.some(existingComment => existingComment.commentId === comment.id)) {
+                    acc[post.id].comments.push({
+                        commentId: comment.id,
+                        commentContent: comment.content,
+                        commentAuthorId: commentAuthorId,
+                        commentAuthorName: commentAuthorName,
+                        commentAuthorProfilePicture: commentAuthorProfilePicture,
+                    })
+                }
                 return acc
-            }, 
-           {})
+            },
+        {})
         const sortedPosts = Object.values(posts).sort((a, b) => {
             return b.post.createdAt.getTime() - a.post.createdAt.getTime()
         })
-        return sortedPosts;
-        }
-
-    
+        return sortedPosts
+    }
     
     async createPost(userId: number, content: string, image: string): Promise<any[]> {
         const newPost = await db.insert(PostsTable).values({

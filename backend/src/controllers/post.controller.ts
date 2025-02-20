@@ -4,15 +4,33 @@ import { upload } from "../../multer.config";
 import cloudinary, { extractPublicId } from "../db/cloudinary";
 import { io } from "../../server";
 import notificationService from "../services/notification.service";
+import postService from "../services/post.service";
 
 
 class PostController {
     async getPosts(req: Request, res: Response): Promise<void> {
         try {
-            const { userName } = req.query;
-            console.log('userName', userName)
-            const posts = await PostService.getPosts(userName as string);
+            const currentUser = req.user?.userId
+            if (!currentUser) {
+                res.status(401).json({ message: 'Unauthorized' });
+                return
+            }
+            console.log('Current user', currentUser)
+            const posts = await PostService.getPosts(currentUser);
+            console.log('Posts', posts)
             res.status(200).json(posts);
+        }
+        catch (err) {
+            console.error('Error getting posts', err)
+        }
+    }
+
+    async getPostsByProfile(req: Request, res: Response): Promise<void> {
+        try {
+            const { username } = req.params
+            console.log('GetPost', username)
+            const posts = await postService.getPostsByProfile(username)
+            res.status(200).json(posts)
         }
         catch (err) {
             console.error('Error getting posts', err)

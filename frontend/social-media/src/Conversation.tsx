@@ -1,10 +1,9 @@
-import { Card, Grid, GridItem, List, Box, Flex, Stack, Button, Textarea, Input, IconButton, Center } from '@chakra-ui/react'
+import { Card, Grid, GridItem, List, Box, Flex, Stack, Button, Input, IconButton, Center } from '@chakra-ui/react'
 import { Avatar } from './src/components/ui/avatar'
 import { useNavigate, useParams } from 'react-router'
 import Navbar from './subpages/Navbar'
 import React, { useEffect }from 'react'
 import { api } from './utils/axiosConfig'
-import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import { useUserStore } from '../store/user.store'
 import { LuSmile } from "react-icons/lu";

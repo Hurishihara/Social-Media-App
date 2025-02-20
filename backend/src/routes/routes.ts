@@ -7,6 +7,7 @@ import messageRouter from './message.route';
 import notificationRouter from './notification.route';
 import postRouter from './post.route';
 import userRouter from './user.route';
+import commentRouter from './comment.route';
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use('/message', messageRouter);
 router.use('/notification', notificationRouter);
 router.use('/post', postRouter);
 router.use('/user', userRouter);
+router.use('/comment', commentRouter);
 
 export default router;

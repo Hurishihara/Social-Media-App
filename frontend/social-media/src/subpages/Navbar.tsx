@@ -39,7 +39,7 @@ const Navbar = () => {
     try {
       socket?.disconnect()
       const authApi = api('auth')
-      const response = await authApi.post('/logout')
+      await authApi.post('/logout')
       navigate('/')
       clearUser()
       clearPosts()
@@ -120,7 +120,7 @@ const Navbar = () => {
       clearTimeout(debounceTimeout)
     }
     const timeOut = setTimeout(() => {
-      socket.emit('search', value);
+      socket?.emit('search', value);
     }, 1000)
 
     setDebounceTimeout(timeOut)
