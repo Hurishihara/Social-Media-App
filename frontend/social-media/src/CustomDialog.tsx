@@ -1,18 +1,15 @@
-import { Box, Button, Card, useDialog, Heading, Icon, IconButton, Separator, Stack, Textarea, DialogRootProvider, Editable } from '@chakra-ui/react'
+import { Button, Icon, IconButton, Separator, Stack, Editable } from '@chakra-ui/react'
 import {
-    DialogTrigger,
     DialogHeader,
     DialogTitle,
     DialogBody,
     DialogContent,
     DialogRoot,
     DialogCloseTrigger,
-    DialogFooter
 } from './src/components/ui/dialog'
-import { LuCheck, LuPencilLine, LuX } from "react-icons/lu"
-import React, { useState } from 'react'
+import { LuX } from "react-icons/lu"
+import { useState } from 'react'
 import { IoPersonSharp } from 'react-icons/io5'
-import { FaRegImages } from "react-icons/fa";
 import { api } from './utils/axiosConfig'
 import { Post } from '../store/post.store'
 

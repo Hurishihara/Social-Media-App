@@ -100,6 +100,11 @@ const Navbar = () => {
       const updatedNotifications = currentNotification.filter(notification => notification.id !== data.id)
       setUserNotifications(updatedNotifications)
     })
+    socket?.on('comment-notification', (data) => {
+      const currentNotification = useNotificationStore.getState().userNotifications
+      const updatedNotifications = [data, ...currentNotification]
+      setUserNotifications(updatedNotifications)
+    })
 
 
     return () => {
@@ -109,6 +114,7 @@ const Navbar = () => {
       socket?.off('friend-request-notification')
       socket?.off('friend-accept-notification')
       socket?.off('cancel-friend-request')
+      socket?.off('comment-notification')
     }
   }, [userId])
 
@@ -204,8 +210,8 @@ const Navbar = () => {
                   </IconButton>
                 </MenuTrigger>
                 <MenuContent>
-                  {userNotifications.length > 0 ? userNotifications.map((notification, index) => (
-                    <MenuItem key={index} value={notification.senderUserName} >
+                  {userNotifications.length > 0 ? userNotifications.map((notification) => (
+                    <MenuItem key={notification.id} value={notification.id.toString()}>
                       <Avatar name={notification.senderUserName} src={notification.senderProfilePicture} />
                       <Stack direction='column' gap='0'>
                         <Box fontSize='1rem'>

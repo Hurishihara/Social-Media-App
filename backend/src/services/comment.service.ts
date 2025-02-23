@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db/db";
-import { CommentsTable } from "../drizzle/schema";
+import { CommentsTable, PostsTable } from "../drizzle/schema";
 
 class CommentService {
     async createComment(content: string, userId: number, postId: number): Promise<any> {
@@ -14,6 +14,11 @@ class CommentService {
             commentUserId: CommentsTable.user_id,
             commentPostId: CommentsTable.post_id
         })
+
+        const totalComments = await db.select().from(CommentsTable).where(eq(CommentsTable.post_id, postId))
+        await db.update(PostsTable).set({
+            comments_count: totalComments.length
+        }).where(eq(PostsTable.id, postId))
 
         return comment[0]
     }

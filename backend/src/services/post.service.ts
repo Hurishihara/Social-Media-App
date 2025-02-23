@@ -97,14 +97,21 @@ class PostService {
                     commentAuthorId: commentAuthorId,
                     commentAuthorName: commentAuthorName,
                     commentAuthorProfilePicture: commentAuthorProfilePicture,
+                    commentCreatedAt: comment.created_at
                 })
             }
             return acc
         }, {})
 
+        Object.values(posts).forEach(post => {
+            post.comments.sort((a, b) => {
+                return b.commentCreatedAt.getTime() - a.commentCreatedAt.getTime()
+            })
+        })
         const sortedPosts = Object.values(posts).sort((a, b) => {
             return b.post.createdAt.getTime() - a.post.createdAt.getTime()
         })
+
         return sortedPosts
     }
 
@@ -171,11 +178,17 @@ class PostService {
                         commentAuthorId: commentAuthorId,
                         commentAuthorName: commentAuthorName,
                         commentAuthorProfilePicture: commentAuthorProfilePicture,
+                        commentCreatedAt: comment.created_at
                     })
                 }
                 return acc
             },
         {})
+        Object.values(posts).forEach(post => {
+            post.comments.sort((a, b) => {
+                return b.commentCreatedAt.getTime() - a.commentCreatedAt.getTime()
+            })
+        })
         const sortedPosts = Object.values(posts).sort((a, b) => {
             return b.post.createdAt.getTime() - a.post.createdAt.getTime()
         })

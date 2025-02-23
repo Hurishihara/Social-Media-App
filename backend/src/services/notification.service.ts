@@ -14,13 +14,14 @@ const notificationTexts: Record<NotificationType, (senderUserName: string) => st
 };
 
 class NotificationService {
-    async createNotification(notificationType: NotificationType, receiverId: number, senderId: number, relatedLikeId?: number | null, relatedFriendshipId?: number | null): Promise<any> {
+    async createNotification(notificationType: NotificationType, receiverId: number, senderId: number, relatedLikeId?: number | null, relatedFriendshipId?: number | null, relatedCommentId?: number | null): Promise<any> {
         const notifications = await db.insert(NotificationsTable).values({
             notification_type: notificationType,
             receiver_id: receiverId,
             sender_id: senderId,
             related_like_id: relatedLikeId,
-            related_friendship_id: relatedFriendshipId
+            related_friendship_id: relatedFriendshipId,
+            related_comment_id: relatedCommentId
         }).returning()
 
         const sender = await db.select({

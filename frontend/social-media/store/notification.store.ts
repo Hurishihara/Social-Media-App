@@ -8,7 +8,7 @@ export interface Notification {
     notification_type: string
     receiver_id: number
     related_post_id: number | null
-    releated_user_id: number | null
+    related_user_id: number | null
     senderProfilePicture: string
     senderUserId: number
     senderUserName: string

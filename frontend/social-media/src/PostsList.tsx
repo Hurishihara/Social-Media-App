@@ -16,15 +16,12 @@ import { Post, usePostStore } from '../store/post.store'
 import CustomDialog from './CustomDialog';
 import { useUserStore } from '../store/user.store';
 import { socket } from './utils/socket.io'
-import { DialogBody, DialogContent, DialogHeader, DialogRoot, DialogTitle, DialogTrigger, DialogFooter } from './src/components/ui/dialog'
+import { DialogBody, DialogContent, DialogHeader, DialogRoot, DialogTitle, DialogTrigger } from './src/components/ui/dialog'
 import Picker from '@emoji-mart/react'
 import { LuSendHorizontal, LuSmile } from 'react-icons/lu'
 
 
 
-interface PostsListProps {
-    userNameFilter: string | undefined
-}
 
 export const formatDate = (dateString: string): string => {
     const date = new Date(dateString)
@@ -46,7 +43,6 @@ const PostsList = () => {
     const { userId, userName, profilePicture } = useUserStore()
     const [ selectedPost, setSelectedPost ] = useState(null)
     const [ open, setOpen ] = useState<Boolean>(false)
-    const [ comments, setComments ] = useState([])
     const [ userCommment, setUserComment ] = useState('')
     const [ showEmojiPicker, setShowEmojiPicker ] = useState(false)
 
@@ -91,12 +87,13 @@ const PostsList = () => {
         }
     }
 
-    const handleComment = async (postId: number): Promise<void> => {
+    const handleComment = async (postId: number, authorId: number): Promise<void> => {
         try {
             const commentApi = api('comment')
             const response = await commentApi.post('/create-comment', {
                 content: userCommment,
-                postId: postId
+                postId: postId,
+                authorId: authorId
             })
             console.log(response)
         }
@@ -239,7 +236,7 @@ const PostsList = () => {
                                             <Separator variant='solid' w='100%' size='sm' mt='1rem' orientation='horizontal' />
                                             <Flex justifyContent='space-around' direction='row' >
                                                 <Button variant='ghost' color={!post.isLiked ? 'gray' : '#3B5998'} onClick={(event) => handleLike(event, post.post.postId)} fontSize='1rem' w='50%' fontWeight='medium'>Like</Button>
-                                                <Button variant='ghost' color='gray' fontSize='1rem' w='50%' fontWeight='medium'>Comment</Button>
+                                                <Button variant='ghost' color='gray' fontSize='1rem' w='50%' fontWeight='medium' onClick={() => handleComment(post.post.postId, post.authorId)}>Comment</Button>
                                             </Flex>
                                             <Separator variant='solid' w='100%' size='sm' mb='2rem' orientation='horizontal' />
                                             <Flex direction='column' gap={2} >
@@ -262,7 +259,7 @@ const PostsList = () => {
                                             <Separator variant='solid' w='100%' size='sm' mt='2rem'  orientation='horizontal' />
                                             <Flex direction='row' justify='flex-start' align='center' gap={2} mt='1rem'>
                                                 <Box>
-                                                    <Avatar size='sm' name={userName} src={profilePicture} />
+                                                    <Avatar size='sm' name={userName || undefined} src={profilePicture || undefined} />
                                                 </Box>
                                                 <Stack 
                                                 direction='row' 
@@ -276,7 +273,7 @@ const PostsList = () => {
                                                         <LuSmile />
                                                     </IconButton>
                                                     <Input placeholder='Post your comment'  _focus={{ outline: 'none'}} borderStyle='none' onChange={(e) => setUserComment(e.target.value)} />
-                                                    <IconButton size='sm' variant='plain' onClick={() => handleComment(post.post.postId)}>
+                                                    <IconButton size='sm' variant='plain' onClick={() => handleComment(post.post.postId, post.authorId)}>
                                                         <LuSendHorizontal />
                                                     </IconButton>
                                                 </Stack>

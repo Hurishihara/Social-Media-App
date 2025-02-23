@@ -61,6 +61,7 @@ export const NotificationsTable = pgTable('notifications', {
     created_at: timestamp('created_at').defaultNow().notNull(),
     related_like_id: integer('related_like_id').references(() => LikesTable.id),
     related_friendship_id: integer('related_friendship_id').references(() => FriendshipsTable.id),
+    related_comment_id: integer('related_comment_id').references(() => CommentsTable.id),
     receiver_id: integer('receiver_id').references(() => UsersTable.id, { onDelete: 'cascade' }).notNull(),
     sender_id: integer('sender_id').references(() => UsersTable.id, { onDelete: 'cascade' }).notNull()
 }, (table) => [{
@@ -168,6 +169,10 @@ export const CommentsTableRelations = relations(CommentsTable, ({ one }) => ({
     userComment: one(UsersTable, {
         fields: [CommentsTable.user_id],
         references: [UsersTable.id]
+    }),
+    notificationCommentId: one(NotificationsTable, {
+        fields: [CommentsTable.id],
+        references: [NotificationsTable.related_comment_id]
     })
 }))
 
@@ -189,6 +194,10 @@ export const NotificationsTableRelations = relations(NotificationsTable, ({ one 
     relatedFriendship: one(UsersTable, {
         fields: [NotificationsTable.related_friendship_id],
         references: [UsersTable.id],
+    }),
+    relatedComment: one(CommentsTable, {
+        fields: [NotificationsTable.related_comment_id],
+        references: [CommentsTable.id]
     })
 }))
 

@@ -61,6 +61,9 @@ class UserService {
             return [];
         }
         const users = await db.select().from(UsersTable).where(sql`to_tsvector('english', ${UsersTable.username}) @@ to_tsquery('english', ${query})`);
+        if (users.length === 0) {
+            return [];
+        }
         const checkFriends = await db.query.FriendshipsTable.findFirst({
             where: or(
                 and(eq(FriendshipsTable.sender_id, currentUser!), eq(FriendshipsTable.receiver_id, users[0].id!)),
