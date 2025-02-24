@@ -4,6 +4,18 @@ import { ConversationsTable } from "../drizzle/schema";
 
 class ConversationService {
     async createConversation(userOneId: number, userTwoId: number): Promise<any> {
+        const existingConversation = await db.query.ConversationsTable.findFirst({
+            where: or(
+                and(eq(ConversationsTable.user_one_id, userOneId), eq(ConversationsTable.user_two_id, userTwoId)),
+                and(eq(ConversationsTable.user_one_id, userTwoId), eq(ConversationsTable.user_two_id, userOneId))
+            ),
+            columns: {
+                id: true
+            }
+        })
+       if (existingConversation) {
+            return existingConversation
+       }
         const conversation = await db.insert(ConversationsTable).values({
             user_one_id: userOneId,
             user_two_id: userTwoId

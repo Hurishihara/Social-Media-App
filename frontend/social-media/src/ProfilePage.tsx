@@ -389,7 +389,7 @@ const ProfilePage = () => {
                         </Card.Body>
                     </Card.Root>
                 </GridItem>
-                <GridItem colSpan='5'>
+                <GridItem colSpan={5}>
                     <Card.Root>
                         <Card.Body>
                            <Card.Title fontSize='1.3rem' fontWeight='bold'>Intro</Card.Title>
@@ -407,11 +407,13 @@ const ProfilePage = () => {
                         </Card.Body>
                     </Card.Root>
                 </GridItem>
-                <GridItem colSpan='7'>
+                <GridItem colSpan={7}>
                     {(searchedUserProfileData.isFriend.status === 'accepted' || searchedUserProfileData.isFriend.status === true) && (
                         <>
-                            <CreatePost createPostButtonSize={'34rem'} />
-                            <PostsList  />
+                            {searchedUserProfileData.username === userName ? (
+                                <CreatePost createPostButtonSize={'34rem'} />
+                            ) : null}
+                            <PostsList mt={searchedUserProfileData.username === userName ? '1.5rem' : '0'} />
                         </>
                     )}
                 </GridItem>

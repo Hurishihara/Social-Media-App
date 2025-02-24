@@ -67,7 +67,6 @@ const Conversation = () => {
             const getMessages = async () => {
                 const messageApi = api('message')
                 const response = await messageApi.get(`/get-messages/${conversationId}`)
-                console.log(response.data)
                 setUserMessage(response.data)
             }
             getMessages()
@@ -90,7 +89,6 @@ const Conversation = () => {
             receiverId: conversations.find(conversation => conversation.id === Number(conversationId))?.user.id,
             content: message
         })
-        console.log(response.data)
         setUserMessage((prevMessage) => [...prevMessage, response.data])
         setMessage('')
        }

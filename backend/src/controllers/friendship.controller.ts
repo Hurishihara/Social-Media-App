@@ -54,8 +54,6 @@ class FriendshipController {
         try {
             const { friendshipId, receiverId } = req.body;
             const currentUser = req.user?.userId;
-            console.log('friendshipId', friendshipId)
-            console.log('receiverId', receiverId)
             if (currentUser === undefined) {
                 res.status(400).json({ message: 'Current user is not authenticated' });
                 return;
@@ -80,9 +78,7 @@ class FriendshipController {
                 return;
             }
             const { userId } = req.query;
-            console.log('userId', userId)
             const friends = await FriendshipService.getFriends(Number(userId));
-            console.log('friends', friends)
             res.status(200).json(friends);
         }
         catch (err) {

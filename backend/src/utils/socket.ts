@@ -1,4 +1,5 @@
 import { Socket } from "socket.io";
+import { io } from "../../server";
 
 export const userSockets: Record<string, string> = {};
 
@@ -10,17 +11,26 @@ export function handleUserConnection(socket: Socket) {
             socket.to(oldSocketId).disconnectSockets(true)
         }
         userSockets[userId] = socket.id;
-        console.log(`User ${userId} connected with socket ${socket.id}`);
-        console.log('join room user sockets', userSockets);
+
+        io.emit('update-user-status', { userId, status: true });
+        socket.emit('online-users', Object.keys(userSockets));
+    })
+
+    socket.on('request-online-users', () => {
+        socket.emit('online-users', Object.keys(userSockets));
     })
 
     socket.on('disconnect', () => {
+        let disconnectedUserId: string | null = null;
         Object.entries(userSockets).forEach(([key, value]) => {
             if (value === socket.id) {
+                disconnectedUserId = key;
                 delete userSockets[key];
-                console.log(`User ${key} disconnected`);
-                console.log('disconnect user sockets', userSockets);
             }
         })
+        if (disconnectedUserId) {
+            io.emit('update-user-status', { userId: disconnectedUserId, status: false });
+            io.emit('online-users', Object.keys(userSockets));
+        }
     })
 }

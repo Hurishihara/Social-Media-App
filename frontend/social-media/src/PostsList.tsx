@@ -15,13 +15,15 @@ import { api } from './utils/axiosConfig'
 import { Post, usePostStore } from '../store/post.store'
 import CustomDialog from './CustomDialog';
 import { useUserStore } from '../store/user.store';
-import { socket } from './utils/socket.io'
 import { DialogBody, DialogContent, DialogHeader, DialogRoot, DialogTitle, DialogTrigger } from './src/components/ui/dialog'
 import Picker from '@emoji-mart/react'
 import { LuSendHorizontal, LuSmile } from 'react-icons/lu'
+import { useSocket } from './SocketContext';
 
 
-
+type PostListProp = {
+    mt: string
+}
 
 export const formatDate = (dateString: string): string => {
     const date = new Date(dateString)
@@ -37,10 +39,11 @@ export const formatDate = (dateString: string): string => {
 }
 
 
-const PostsList = () => {
+const PostsList: React.FC<PostListProp> = ({ mt }) => {
     
     const { posts, setPosts } = usePostStore()
     const { userId, userName, profilePicture } = useUserStore()
+    const socket = useSocket()
     const [ selectedPost, setSelectedPost ] = useState(null)
     const [ open, setOpen ] = useState<Boolean>(false)
     const [ userCommment, setUserComment ] = useState('')
@@ -95,7 +98,6 @@ const PostsList = () => {
                 postId: postId,
                 authorId: authorId
             })
-            console.log(response)
         }
         catch(err) {
             console.error(err)
@@ -125,26 +127,26 @@ const PostsList = () => {
     }
 
     useEffect(() => {
-        socket.on('new-post', (newPost: Post) => {
+        socket?.on('new-post', (newPost: Post) => {
             setPosts([newPost, ...posts])
             
         })
 
-        socket.on('delete-post', (postId: number) => {
+        socket?.on('delete-post', (postId: number) => {
             const updatedPosts = posts.filter(post => post.post.postId !== postId)
             setPosts(updatedPosts)
         })
 
         return () => {
-            socket.off('new-post')
-            socket.off('delete-post')
+            socket?.off('new-post')
+            socket?.off('delete-post')
         }
     }, [])
 
     
     return (
         <>
-            <List.Root listStyleType='none' mt='1.5rem' gap='5'>
+            <List.Root listStyleType='none' mt={ !mt ? '1.5rem' : mt} gap='5'>
                 {posts.map((post: Post) => (
                     <Card.Root key={post.post.postId} borderRadius='0.8rem' >
                         <Card.Body>

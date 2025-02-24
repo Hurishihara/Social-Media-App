@@ -8,8 +8,6 @@ class CommentController {
     async createComment(req: Request, res: Response): Promise<void> {
         try {
             const { content, postId, authorId } = req.body;
-            console.log('content', content)
-            console.log('postId', postId)
             const currentUser = req.user?.userId;
             if (currentUser === undefined) {
                 res.status(400).json({ message: 'Current user is not authenticated' });

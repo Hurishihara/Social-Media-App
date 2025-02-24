@@ -1,4 +1,4 @@
-import { Box, Button, Card, Code, FileUploadHiddenInput, FileUploadRootProvider, Heading, Icon, IconButton, Separator, Stack, Textarea, useFileUpload, } from '@chakra-ui/react'
+import { Button, Card, FileUploadHiddenInput, FileUploadRootProvider, Heading, Icon, IconButton, Separator, Stack, Textarea, useFileUpload, } from '@chakra-ui/react'
 import {
     DialogTrigger,
     DialogHeader,
@@ -7,12 +7,8 @@ import {
     DialogContent,
     DialogRoot,
     DialogCloseTrigger,
-    DialogFooter
 } from './src/components/ui/dialog'
 import {
-    FileUpload,
-    FileUploadList,
-    FileUploadRoot,
     FileUploadTrigger
 } from './src/components/ui/file-upload'
 import { Avatar } from './src/components/ui/avatar'
@@ -52,9 +48,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
         if (fileUpload.acceptedFiles.length > 0) {
             const file = fileUpload.acceptedFiles[0]
         
-        console.log('file', file)
-        console.log('content', content)
-        console.log('userId', userId)
         const postApi = api('post')
         const response = await postApi.post('/create-post', {
             userId,
@@ -65,7 +58,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
                 'Content-Type': 'multipart/form-data'
             },
         })
-        console.log('response', response)
         alert('Post created')
     }
 }

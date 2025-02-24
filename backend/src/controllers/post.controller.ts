@@ -17,7 +17,6 @@ class PostController {
             }
             console.log('Current user', currentUser)
             const posts = await PostService.getPosts(currentUser);
-            console.log('Posts', posts)
             res.status(200).json(posts);
         }
         catch (err) {
