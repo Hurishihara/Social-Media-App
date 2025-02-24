@@ -36,7 +36,6 @@ const LoginPage = () => {
         email,
         password
       })
-      console.log(response.data)
       setUserId(response.data.userId)
       setUserName(response.data.userName)
       setProfilePicture(response.data.profilePicture)

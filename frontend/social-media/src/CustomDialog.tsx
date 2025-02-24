@@ -30,7 +30,6 @@ const CustomDialog = ({ post, open, setOpen }: { post: Post, open: boolean, setO
                 postId: post.post.postId,
                 content: editedContent
             })
-            console.log(response.data)
         }
         catch (err) {
             console.error(err)

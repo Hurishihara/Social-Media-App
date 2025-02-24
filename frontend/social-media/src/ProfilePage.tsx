@@ -158,7 +158,6 @@ const ProfilePage = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             })
-            console.log(await response.data)
             alert('Profile updated')
         }
         catch (err) {
@@ -173,7 +172,6 @@ const ProfilePage = () => {
                 receiverId: searchedUserProfileData.id,
             })
             alert('Friend request sent')
-            console.log('Friend request success', response)
             const updatedData = { ...searchedUserProfileData, isFriend: { id: response.data.id, receiver: response.data.receiverId, status: response.data.friendshipStatus } }
             setSearchedUserProfileData(updatedData)
         }
@@ -190,7 +188,6 @@ const ProfilePage = () => {
                 receiverId: searchedUserProfileData.id
             })
             alert('Friend request accepted')
-            console.log('Friend request accepted', response)
             const updatedData = { ...searchedUserProfileData, isFriend: { id: response.data.id, receiver: response.data.receiverId, status: response.data.friendshipStatus } }
             setSearchedUserProfileData(updatedData)
         }
@@ -210,7 +207,6 @@ const ProfilePage = () => {
             })
             console.log('Friendship id', searchedUserProfileData.isFriend.id)
             alert('Friend request declined')
-            console.log('Friend request declined', response)
             const updatedData = { ...searchedUserProfileData, isFriend: { id: response.data.id, receiver: response.data.receiverId, status: response.data.friendshipStatus } }
             setSearchedUserProfileData(updatedData)
         }
