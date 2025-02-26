@@ -17,7 +17,7 @@ const RegisterPage = () => {
 
     try {
       const authApi = api('auth')
-      const response = await authApi.post('/register', { username, email, password })
+      await authApi.post('/register', { username, email, password })
     }
     catch (error) {
       console.log(error)

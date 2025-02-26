@@ -31,7 +31,7 @@ const FriendList: React.FC<FriendListProps> = ({ friends }) => {
         </Heading>
         <List.Root gap='0.9rem' mt='0.7rem' listStyleType='none' fontSize='1.1rem' ml='1rem'>
             {friends.map((friend) => (
-                <List.Item key={friend.id} onClick={() => handleUserClick(friend.name)} cursor='pointer'>
+                <List.Item key={friend.id} onClick={() => handleUserClick(friend.name)} cursor='pointer' >
                     <List.Indicator asChild>
                         <Avatar.Root size='sm' >
                             <Avatar.Image src={friend.profilePicture} />

@@ -11,6 +11,7 @@ import { AuthProviderWrapper } from './AuthProviderWrapper.tsx'
 import ProfilePage from './ProfilePage.tsx'
 import Conversation from './Conversation.tsx'
 import { SocketProviderWrapper } from './SocketProviderWrapper.tsx'
+import Messages from './Messages.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

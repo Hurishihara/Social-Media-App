@@ -1,4 +1,4 @@
-import { Grid, GridItem } from '@chakra-ui/react';
+import { Grid, GridItem, useBreakpoint, useBreakpointValue } from '@chakra-ui/react';
 import CreatePost from './CreatePost';
 import FriendList from './FriendList';
 import Navbar from './subpages/Navbar'
@@ -8,6 +8,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from './utils/axiosConfig';
 import { Post, usePostStore } from '../store/post.store';
 import { useSocket } from './SocketContext';
+import React from 'react';
 
 
 const HomePage = () => {
@@ -26,6 +27,36 @@ const HomePage = () => {
     const { userId } = useUserStore();
     const { setPosts } = usePostStore();
     const socket = useSocket();
+    const isMobile = useBreakpointValue({
+        base: true,
+        sm: true,
+        md: true,
+        lg: true,
+        tablet: false,
+        desktop: false,
+        wide: false
+    });
+    const marginLeft = useBreakpointValue({
+        base: '0',
+        sm: '0',
+        md: '0',
+        lg: '8rem',
+        tablet: '1rem',
+        desktop: '1rem',
+        wide: '1rem',
+        wideDesktop: '1rem'
+    })
+    const marginRight = useBreakpointValue({
+        base: '0',
+        sm: '0',
+        md: '0',
+        lg: '0',
+        tablet: '0',
+        desktop: '1rem',
+        wide: '1rem',
+        wideDesktop: '1rem'
+    })
+
 
 
     useEffect(() => {
@@ -96,21 +127,29 @@ const HomePage = () => {
         };
     }, [socket]);
     
-
-    useEffect(() => {
-        console.log('friends', friends);
-    }, [friends])
+    const postButtonSize = useBreakpointValue({
+        base: '14.5rem',
+        sm: '18rem',
+        md: '20.5rem',
+        lg: '27.5rem',
+        tablet: '35rem',
+        desktop: '31rem',
+        wide: '23rem',
+        wideDesktop: '29rem'
+    })
 
     return (
         <>
             <Navbar />
-            <Grid templateColumns='repeat(12, 1fr)' mt='1rem' ml='1rem'>
-                <GridItem colSpan={4}>
-                    <FriendList friends={friends} />
-                </GridItem>
-                <GridItem colSpan={4}>
-                    <CreatePost createPostButtonSize={'28rem'} />
-                    <PostsList />
+            <Grid templateColumns='repeat(12, 1fr)' mt='1rem' ml={marginLeft} mr={marginRight}>
+                {!isMobile ? (
+                    <GridItem colSpan={!isMobile ? { tablet: 3, desktop: 4, wide: 4} : null }>
+                        <FriendList friends={friends} /> 
+                    </GridItem>
+                ): null}
+                <GridItem colSpan={{ base: 12, sm: 12, md: 12, lg: 10, tablet: 8, desktop: 6, wide: 4 }}>
+                    <CreatePost createPostButtonSize={postButtonSize || 'defaultSize'} />
+                    <PostsList mt='1rem' />
                 </GridItem>
             </Grid>
         </>

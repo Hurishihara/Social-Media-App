@@ -15,7 +15,7 @@ import { api } from './utils/axiosConfig'
 import { Post, usePostStore } from '../store/post.store'
 import CustomDialog from './CustomDialog';
 import { useUserStore } from '../store/user.store';
-import { DialogBody, DialogContent, DialogHeader, DialogRoot, DialogTitle, DialogTrigger } from './src/components/ui/dialog'
+import { DialogBody, DialogCloseTrigger, DialogContent, DialogHeader, DialogRoot, DialogTitle, DialogTrigger } from './src/components/ui/dialog'
 import Picker from '@emoji-mart/react'
 import { LuSendHorizontal, LuSmile } from 'react-icons/lu'
 import { useSocket } from './SocketContext';
@@ -148,7 +148,7 @@ const PostsList: React.FC<PostListProp> = ({ mt }) => {
         <>
             <List.Root listStyleType='none' mt={ !mt ? '1.5rem' : mt} gap='5'>
                 {posts.map((post: Post) => (
-                    <Card.Root key={post.post.postId} borderRadius='0.8rem' >
+                    <Card.Root key={post.post.postId} borderRadius='0.8rem' boxShadow='md'>
                         <Card.Body>
                             <Flex justifyContent='space-between'>
                                 <Stack direction='row' gap='3' align='center' mb='2rem'>
@@ -198,11 +198,11 @@ const PostsList: React.FC<PostListProp> = ({ mt }) => {
                             <Separator variant='solid' w='100%' size='sm' mt='1rem' orientation='horizontal' />
                             <Flex justifyContent='space-around' direction='row'>
                                 <Button variant='ghost' color={!post.isLiked ? 'gray' : '#3B5998'} onClick={(event) => handleLike(event, post.post.postId)} fontSize='1rem' w='50%' fontWeight='medium'>Like</Button>
-                                <DialogRoot size='sm' placement='center' >
+                                <DialogRoot size='sm' placement='center'>
                                     <DialogTrigger asChild>
                                         <Button variant='ghost' color='gray' fontSize='1rem' w='50%' fontWeight='medium'>Comment</Button>
                                     </DialogTrigger>
-                                    <DialogContent>
+                                    <DialogContent borderRadius='none'>
                                         <DialogHeader>
                                             <DialogTitle align='center'> {`${post.authorName}'s Post`} </DialogTitle>
                                             <Separator mt='1rem' mb='1rem' />
@@ -293,6 +293,7 @@ const PostsList: React.FC<PostListProp> = ({ mt }) => {
                                             </Flex>
                                             
                                         </DialogBody>
+                                        <DialogCloseTrigger rounded='full' />
                                     </DialogContent>
                                 </DialogRoot>
                             </Flex>

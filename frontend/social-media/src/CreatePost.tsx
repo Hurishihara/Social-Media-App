@@ -1,4 +1,4 @@
-import { Button, Card, FileUploadHiddenInput, FileUploadRootProvider, Heading, Icon, IconButton, Separator, Stack, Textarea, useFileUpload, } from '@chakra-ui/react'
+import { Button, Card, FileUploadHiddenInput, FileUploadRootProvider, Heading, Icon, IconButton, Separator, Stack, Textarea, useBreakpointValue, useFileUpload, } from '@chakra-ui/react'
 import {
     DialogTrigger,
     DialogHeader,
@@ -28,6 +28,16 @@ const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
     
     const { userName, userId, profilePicture } = useUserStore()
     const [content, setContent] = useState<string>('')
+    const postButtonSize = useBreakpointValue({
+        base: createPostButtonSize,
+        sm: createPostButtonSize,
+        md: createPostButtonSize,
+        lg: createPostButtonSize,
+        tablet: createPostButtonSize,
+        desktop: createPostButtonSize,
+        wide: createPostButtonSize,
+        wideDesktop: createPostButtonSize
+    })
 
 
     const fileUpload = useFileUpload({
@@ -65,14 +75,14 @@ const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
     
     return (
         <>
-            <Card.Root>
+            <Card.Root borderRadius='0.8rem' boxShadow='md'>
                 <Card.Body>
                     <Stack direction='row' gap='3' align='center' >
                         <Avatar src={profilePicture} size='sm'/>
                         <form id='create-post' method='post' onSubmit={handleCreatePost} encType='multipart/form-data'>
                         <DialogRoot size='md' placement='center'>
                             <DialogTrigger asChild>
-                                <Button borderRadius='3rem' w={createPostButtonSize} size='md' variant='subtle' color='gray.500'>
+                                <Button borderRadius='3rem' w={postButtonSize} size='md' variant='subtle' color='gray.500'>
                                     Create a new post...
                                 </Button>
                             </DialogTrigger>

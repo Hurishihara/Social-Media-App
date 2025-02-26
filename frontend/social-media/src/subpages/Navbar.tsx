@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Flex, Input, Box, Stack, IconButton, Icon, Spinner, useMenu, MenuContextTrigger, Button, Image, Float, Circle } from '@chakra-ui/react'
+import { Card, Flex, Input, Box, Stack, IconButton, Icon, Spinner, useMenu, MenuContextTrigger, Button, Image, Float, Circle, useBreakpointValue, List } from '@chakra-ui/react'
 import { Avatar } from '../src/components/ui/avatar';
 import { TiHome } from 'react-icons/ti'
 import { LuMessageCircleMore } from "react-icons/lu";
@@ -17,6 +17,8 @@ import { usePostStore } from '../../store/post.store';
 import { useNotificationStore, Notification } from '../../store/notification.store';
 import { formatDate } from '../PostsList'
 import { useSocket } from '@/SocketContext';
+import { DrawerActionTrigger, DrawerBackdrop, DrawerCloseTrigger, DrawerContent, DrawerHeader, DrawerRoot, DrawerTrigger } from '@/src/components/ui/drawer';
+import { IoIosArrowRoundBack } from "react-icons/io";
 
 const Navbar = () => {
 
@@ -29,6 +31,7 @@ const Navbar = () => {
   const { clearPosts } = usePostStore()
   const socket = useSocket()
   const { userNotifications, setUserNotifications, clearNotifications } = useNotificationStore()
+ 
  
 
   const handleHomeButtonClick = () => {
@@ -58,7 +61,6 @@ const Navbar = () => {
         const response = await notificationApi.get('/notifications', {
           params: userIdFilter ? { userId: userIdFilter } : {}
         })
-        console.log('fetch notifications', response.data)
         setUserNotifications(response.data)
       }
       catch (err) {
@@ -69,7 +71,6 @@ const Navbar = () => {
 
     socket?.on('searchResults', (data) => {
       setResults(data)
-      console.log('data', data)
     })
     socket?.on('like-notification', (data) => {
       console.log('like data', data)
@@ -144,11 +145,22 @@ const Navbar = () => {
     navigate('/messages')
   }
 
+   const isMobile = useBreakpointValue({
+        base: true,
+        sm: true,
+        md: true,
+        lg: true,
+        tablet: false,
+        desktop: false,
+        wide: false
+    });
+
   return (
     <>
         <Card.Root height='4rem' borderRadius='none' position='sticky' top='0' zIndex='1000'>
-          <Flex justifyContent='space-between' alignItems='center' h='100%'  direction='row'>
-            <Flex gap='3' alignItems='center' ml='1rem' >
+          <Flex flexDirection='row' justifyContent={!isMobile ? 'space-between' : 'space-evenly'} alignItems='center' h='100%'  direction='row'>
+            {!isMobile ? (
+              <Flex gap='3' alignItems='center' ml='1rem' >
               <Card.Title fontSize='1.3rem'>Social Media App</Card.Title>
                 <Box>
                   <InputGroup startElement={<LuUserRoundSearch />} 
@@ -185,12 +197,50 @@ const Navbar = () => {
                   </InputGroup>
                 </Box>
             </Flex>
-            <Box>
+            ) : (
+              <DrawerRoot size='sm' placement='top'>
+                  <DrawerBackdrop />
+                  <DrawerTrigger asChild>
+                    <IconButton borderRadius='2rem' variant='ghost'>
+                      <LuUserRoundSearch />
+                    </IconButton>
+                  </DrawerTrigger>
+                  <DrawerContent>
+                    <Box p='0.5rem'>
+                      <Stack direction='row' gap='3' align='center'>
+                        <DrawerActionTrigger asChild>
+                          <Icon fontSize='2rem' _hover={{ cursor: 'pointer' }}>
+                            <IoIosArrowRoundBack />
+                          </Icon>
+                        </DrawerActionTrigger>
+                        <Input type='text' value={query} onChange={handleSearch} placeholder='Search User' borderRadius='4rem' />
+                      </Stack>
+                    </Box>
+                    <Box p='1rem'>
+                      <List.Root listStyleType='none'>
+                        {results.length > 0 ? (
+                          results.map((results, index) => (
+                            <List.Item key={index} fontSize='1rem' onClick={() => handleSearchUser(results.username)} _hover={{ cursor: 'pointer' }} fontWeight='medium'>
+                              <List.Indicator>
+                                <Avatar name={results.username} src={results.profilePicture} />
+                              </List.Indicator>
+                              {results.username}
+                            </List.Item>
+                          ))
+                        ) : (
+                          <Box display='flex' justifyContent='center' color='gray.500'>
+                            No searches found
+                          </Box>
+                        )}
+                      </List.Root>
+                    </Box>
+                  </DrawerContent>
+              </DrawerRoot>
+            )}
+            <Box mr={!isMobile ? '1rem' : '0'}>
               <IconButton aria-label='Home' rounded='full' variant='ghost' size='md' onClick={handleHomeButtonClick}>
                 <TiHome />
               </IconButton>
-            </Box>
-            <Flex alignItems='center' gap='1' mr='1rem'>
               <IconButton aria-label='Messages' rounded='full' variant='ghost' size='md' onClick={handleMessageClick}>
                 <LuMessageCircleMore />
               </IconButton>
@@ -246,7 +296,7 @@ const Navbar = () => {
                   </MenuItem>
                 </MenuContent>
               </MenuRoot>
-            </Flex>
+            </Box>
           </Flex>
         </Card.Root>
     </>

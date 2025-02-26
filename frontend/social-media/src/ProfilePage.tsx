@@ -15,6 +15,8 @@ import {
      FileUploadHiddenInput, 
      Editable, 
      IconButton,
+     useBreakpointValue,
+     Text,
     } from '@chakra-ui/react'
 import {
     DialogTrigger,
@@ -228,24 +230,105 @@ const ProfilePage = () => {
         }
     }
 
+    const isMobile = useBreakpointValue({
+        base: true,
+        sm: true,
+        md: true,
+        lg: true,
+        tablet: false,
+        desktop: false,
+        wide: false
+    });
+
+    const gridItemColStart = useBreakpointValue({
+        base: 1,
+        sm: 1,
+        md: 1,
+        lg: 1,
+        tablet: 1,
+        desktop: 2,
+        wide: 3,
+        wideDesktop: 3,
+    })
+
+    const gridItemColEnd = useBreakpointValue({
+        base: 13,
+        sm: 13,
+        md: 13,
+        lg: 13,
+        tablet: 13,
+        desktop: 12,
+        wide: 11,
+        wideDesktop: 11
+    })
+
+    const gridGap = useBreakpointValue({
+        base: 'rem',
+        sm: '1rem',
+        md: '1rem',
+        lg: '1rem',
+        tablet: '25.5rem',
+        desktop: '13rem',
+        wide: '11.5rem',
+        wideDesktop: '11.5rem'
+    })
+
+    const leftRightMargin = useBreakpointValue({
+        base: '0.5rem',
+        sm: '0.5rem',
+        md: '0.5rem',
+        lg: '0.5rem',
+        tablet: '2rem',
+        desktop: '10rem',
+        wide: '10rem',
+        wideDesktop: '19rem'
+    })
+
+    const postButtonSize = useBreakpointValue({
+        base: '13.5rem',
+        sm: '17rem',
+        md: '19.5rem',
+        lg: '41.5rem',
+        tablet: '28rem',
+        desktop: '26rem',
+        wide: '33rem',
+        wideDesktop: '32.5rem'
+    })
+
+
     return (
         <>
             <Navbar />
-           <Grid templateColumns='repeat(12, 1fr)' gap='1rem' mx='17rem'>
-                <GridItem colSpan='12'>
-                    <Card.Root >
-                        <Card.Body padding='1rem'>
-                            <Stack direction='row' gap='1.5rem' align='center'>
-                                <Image src={ !searchedUserProfileData.profilePicture ? 'https://bit.ly/ryan-florence' : searchedUserProfileData.profilePicture } borderRadius='full' boxSize='10rem' css={{ outlineWidth: '4px', outlineColor: 'gray.300', outlineOffset: '1px', outlineStyle: 'solid' }} />
-                                <Stack direction='column' align='flex-start' justify='center' gap='2'>
-                                    <Card.Title fontSize='2rem'> { !searchedUserProfileData.username ? userName : searchedUserProfileData.username } </Card.Title>
-                                    <Card.Description fontSize='1rem'>981 friends</Card.Description>
-                                    <Stack direction='row' gap='30rem' align='center'>
+           <Grid templateColumns='repeat(12, 1fr)' gap='1rem' mx={leftRightMargin}>
+                <GridItem colStart={gridItemColStart} colEnd={gridItemColEnd}>
+                    <Card.Root p='3rem' unstyled w='100%'>
+                        <Card.Body>
+                            <Stack direction={!isMobile ? 'row' : 'column'} gap='1rem' align='center'>
+                                <Image 
+                                src={ !searchedUserProfileData.profilePicture ? 'https://bit.ly/ryan-florence' : searchedUserProfileData.profilePicture } 
+                                borderRadius='full' boxSize='10rem' css={{ outlineWidth: '4px', outlineColor: 'gray.300', outlineOffset: '1px', outlineStyle: 'solid' }} 
+                                />
+                                <Stack direction='column'>
+                                    
+                                </Stack>
+                                <Stack direction='column' align={!isMobile ? 'flex-start' : 'center'} gap='0.2rem'>
+                                    <Card.Title fontSize='2.2rem' fontWeight='bold'> { !searchedUserProfileData.username ? userName : searchedUserProfileData.username } </Card.Title>
+                                    <Card.Description fontSize='1.1rem' color='gray.500' fontWeight='medium' > { friendList.length } { friendList.length > 1 ? 'friends' : 'friend' }</Card.Description>
+                                    {!isMobile ? null : (
                                         <AvatarGroup>
-                                            {(searchedUserProfileData.isFriend.status === true || searchedUserProfileData.isFriend.status === 'accepted') && friendList.map((friend, index) => (
-                                                <Avatar src={friend.profilePicture || 'https://bit.ly/sage-adebayo'} name={friend.userName || 'Gago'} key={index} />
-                                            ))}
+                                        {(searchedUserProfileData.isFriend.status === true || searchedUserProfileData.isFriend.status === 'accepted') && friendList.map((friend, index) => (
+                                            <Avatar src={friend.profilePicture || 'https://bit.ly/sage-adebayo'} name={friend.userName || 'Gago'} key={index} />
+                                        ))}
                                         </AvatarGroup>
+                                    )}
+                                    <Stack direction='row' gap={gridGap} mt={!isMobile ? '0' : '1rem'}>
+                                        {!isMobile ? (
+                                            <AvatarGroup>
+                                                {(searchedUserProfileData.isFriend.status === true || searchedUserProfileData.isFriend.status === 'accepted') && friendList.map((friend, index) => (
+                                                    <Avatar src={friend.profilePicture || 'https://bit.ly/sage-adebayo'} name={friend.userName || 'Gago'} key={index} />
+                                                ))}
+                                            </AvatarGroup>
+                                        ) : null}
                                         <Stack direction='row' gap='2' align='center'>
                                             {searchedUserProfileData.username === userName ? (
                                                 <form id='edit-profile' onSubmit={handleSubmit} >
@@ -379,14 +462,14 @@ const ProfilePage = () => {
                                                     )}
                                         </Stack>
                                     </Stack>
-                                </Stack>
+                                </Stack> 
                             </Stack>
                             
                         </Card.Body>
                     </Card.Root>
                 </GridItem>
-                <GridItem colSpan={5}>
-                    <Card.Root>
+                <GridItem colSpan={!isMobile ? 5 : 12} >
+                    <Card.Root borderRadius='0.8rem' boxShadow='md'>
                         <Card.Body>
                            <Card.Title fontSize='1.3rem' fontWeight='bold'>Intro</Card.Title>
                             <Flex flexDirection='column' gap='2rem' justify='center' mt='1rem'>
@@ -403,11 +486,11 @@ const ProfilePage = () => {
                         </Card.Body>
                     </Card.Root>
                 </GridItem>
-                <GridItem colSpan={7}>
+                <GridItem colSpan={!isMobile ? 7 : 12} >
                     {(searchedUserProfileData.isFriend.status === 'accepted' || searchedUserProfileData.isFriend.status === true) && (
                         <>
                             {searchedUserProfileData.username === userName ? (
-                                <CreatePost createPostButtonSize={'34rem'} />
+                                <CreatePost createPostButtonSize={postButtonSize} />
                             ) : null}
                             <PostsList mt={searchedUserProfileData.username === userName ? '1.5rem' : '0'} />
                         </>
