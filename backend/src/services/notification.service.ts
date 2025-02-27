@@ -15,84 +15,103 @@ const notificationTexts: Record<NotificationType, (senderUserName: string) => st
 
 class NotificationService {
     async createNotification(notificationType: NotificationType, receiverId: number, senderId: number, relatedLikeId?: number | null, relatedFriendshipId?: number | null, relatedCommentId?: number | null): Promise<any> {
-        const notifications = await db.insert(NotificationsTable).values({
-            notification_type: notificationType,
-            receiver_id: receiverId,
-            sender_id: senderId,
-            related_like_id: relatedLikeId,
-            related_friendship_id: relatedFriendshipId,
-            related_comment_id: relatedCommentId
-        }).returning()
-
-        const sender = await db.select({
-            senderUserId: UsersTable.id,
-            senderUserName: UsersTable.username,
-            senderProfilePicture: UsersTable.profile_picture
-        })
-        .from(UsersTable)
-        .where(eq(UsersTable.id, senderId))
-
-        if (!sender.length) {
-            return []
+        try {
+            const notifications = await db.insert(NotificationsTable).values({
+                notification_type: notificationType,
+                receiver_id: receiverId,
+                sender_id: senderId,
+                related_like_id: relatedLikeId,
+                related_friendship_id: relatedFriendshipId,
+                related_comment_id: relatedCommentId
+            }).returning()
+    
+            const sender = await db.select({
+                senderUserId: UsersTable.id,
+                senderUserName: UsersTable.username,
+                senderProfilePicture: UsersTable.profile_picture
+            })
+            .from(UsersTable)
+            .where(eq(UsersTable.id, senderId))
+    
+            if (!sender.length) {
+                return []
+            }
+    
+            return notifications.map((notification: { notification_type: NotificationType }) => ({
+                ...notification,
+                senderUserName: sender[0].senderUserName,
+                senderProfilePicture: sender[0].senderProfilePicture,
+                senderUserId: sender[0].senderUserId,
+                notificationText: notificationTexts[notification.notification_type](sender[0].senderUserName)
+            }))
         }
-
-        return notifications.map((notification: { notification_type: NotificationType }) => ({
-            ...notification,
-            senderUserName: sender[0].senderUserName,
-            senderProfilePicture: sender[0].senderProfilePicture,
-            senderUserId: sender[0].senderUserId,
-            notificationText: notificationTexts[notification.notification_type](sender[0].senderUserName)
-        }))
+        catch {
+            throw new Error('Database error')
+        }
     }
 
     async getNotifications(receiverId: number): Promise<any> {
-        const notifications = await db.select({
-            created_at: NotificationsTable.created_at,
-            has_seen: NotificationsTable.has_seen,
-            id: NotificationsTable.id,
-            notification_type: NotificationsTable.notification_type,
-            receiver_id: NotificationsTable.receiver_id,
-            related_like_id: NotificationsTable.related_like_id,
-            related_friendship_id: NotificationsTable.related_friendship_id,
-            senderProfilePicture: UsersTable.profile_picture,
-            senderUserId: UsersTable.id,
-            senderUserName: UsersTable.username,
-        })
-        .from(NotificationsTable)
-        .leftJoin(UsersTable, eq(UsersTable.id, NotificationsTable.sender_id))
-        .where(eq(NotificationsTable.receiver_id, receiverId))
-        .orderBy(desc(NotificationsTable.created_at))
-        
-        //console.log('notifications', notifications)
-        return notifications.map((notification: { notification_type: NotificationType }) => ({
-            ...notification,
-            notificationText: notificationTexts[notification.notification_type]((notification as any).senderUserName)
-        }))
+        try {
+            const notifications = await db.select({
+                created_at: NotificationsTable.created_at,
+                has_seen: NotificationsTable.has_seen,
+                id: NotificationsTable.id,
+                notification_type: NotificationsTable.notification_type,
+                receiver_id: NotificationsTable.receiver_id,
+                related_like_id: NotificationsTable.related_like_id,
+                related_friendship_id: NotificationsTable.related_friendship_id,
+                senderProfilePicture: UsersTable.profile_picture,
+                senderUserId: UsersTable.id,
+                senderUserName: UsersTable.username,
+            })
+            .from(NotificationsTable)
+            .leftJoin(UsersTable, eq(UsersTable.id, NotificationsTable.sender_id))
+            .where(eq(NotificationsTable.receiver_id, receiverId))
+            .orderBy(desc(NotificationsTable.created_at))
+            
+            return notifications.map((notification: { notification_type: NotificationType }) => ({
+                ...notification,
+                notificationText: notificationTexts[notification.notification_type]((notification as any).senderUserName)
+            }))
+        }
+        catch {
+            throw new Error('Database error')
+        }
     }
 
     async deleteNotification(relatedLikeId?: number, relatedFriendshipId?: number): Promise<any> {
-        if (relatedLikeId) {
-            const deletedNotification = await db.delete(NotificationsTable).where(or(
-                eq(NotificationsTable.related_like_id, relatedLikeId),
-            )).returning({
-                id: NotificationsTable.id
-            })
-            return deletedNotification[0]
+        try {
+            if (relatedLikeId) {
+                const deletedNotification = await db.delete(NotificationsTable).where(or(
+                    eq(NotificationsTable.related_like_id, relatedLikeId),
+                )).returning({
+                    id: NotificationsTable.id
+                })
+                return deletedNotification[0]
+            }
+            else if (relatedFriendshipId) {
+                const deletedNotification = await db.delete(NotificationsTable).where(and(
+                    eq(NotificationsTable.related_friendship_id, relatedFriendshipId),
+                )).returning({
+                    id: NotificationsTable.id
+                })
+                return deletedNotification[0]
+            }
         }
-        else if (relatedFriendshipId) {
-            const deletedNotification = await db.delete(NotificationsTable).where(and(
-                eq(NotificationsTable.related_friendship_id, relatedFriendshipId),
-            )).returning({
-                id: NotificationsTable.id
-            })
-            return deletedNotification[0]
+        catch {
+            throw new Error('Database error')
         }
     }
 
     async markNotificationAsSeen(notificationId: number): Promise<void> {
-        await db.update(NotificationsTable).set({
-            has_seen: true
-        }).where(eq(NotificationsTable.id, notificationId))
+        try {
+            await db.update(NotificationsTable).set({
+                has_seen: true
+            }).where(eq(NotificationsTable.id, notificationId))
+        }
+        catch {
+            throw new Error('Database error')
+        }
     }
 }
 

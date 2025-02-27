@@ -8,23 +8,33 @@ import { userCookie } from "../utils/cookie";
 
 class UserService {
     async registerUser(username: string, email: string, password: string): Promise<void> {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await db.insert(UsersTable).values({
-            username: username,
-            email: email,
-            password: hashedPassword
-        })
+        try {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            await db.insert(UsersTable).values({
+                username: username,
+                email: email,
+                password: hashedPassword
+            });
+        }
+        catch {
+            throw new Error('Database error');
+        }
     }
     async loginUser(email: string, password: string) {
-        const user = await db.select().from(UsersTable).where(eq(UsersTable.email, email));
-        const hashedPassword = user[0].password;
-        const passwordMatch = await bcrypt.compare(password, hashedPassword);
+        try {
+            const user = await db.select().from(UsersTable).where(eq(UsersTable.email, email));
+            const hashedPassword = user[0].password;
+            const passwordMatch = await bcrypt.compare(password, hashedPassword);
 
-        if (!passwordMatch) {
-            throw new Error('Incorrect password');
+            if (!passwordMatch) {
+                throw new Error('Incorrect password');
+            }
+            const token = generateToken(user[0].id);
+            return {user: user[0] as User, token: token};
         }
-        const token = generateToken(user[0].id);
-        return {user: user[0] as User, token: token};
+        catch {
+            throw new Error('Database error');
+        }
     }
 
     async logoutUser () {
@@ -57,54 +67,59 @@ class UserService {
     }
 
     async searchUser(query: string, currentUser?: number): Promise<any[]> {
-        if (!query) {
-            return [];
-        }
-        const users = await db.select().from(UsersTable).where(sql`to_tsvector('english', ${UsersTable.username}) @@ to_tsquery('english', ${query})`);
-        if (users.length === 0) {
-            return [];
-        }
-        const checkFriends = await db.query.FriendshipsTable.findFirst({
-            where: or(
-                and(eq(FriendshipsTable.sender_id, currentUser!), eq(FriendshipsTable.receiver_id, users[0].id!)),
-                and(eq(FriendshipsTable.sender_id, users[0].id!), eq(FriendshipsTable.receiver_id, currentUser!))
-            ),
-            columns: {
-                id: true,
-                friendship_status: true,
-                receiver_id: true
+        try {
+            if (!query) {
+                return [];
             }
-        })
-        return users.map(user => {
-            if (currentUser && user.id === currentUser) {
+            const users = await db.select().from(UsersTable).where(sql`to_tsvector('english', ${UsersTable.username}) @@ to_tsquery('english', ${query})`);
+            if (users.length === 0) {
+                return [];
+            }
+            const checkFriends = await db.query.FriendshipsTable.findFirst({
+                where: or(
+                    and(eq(FriendshipsTable.sender_id, currentUser!), eq(FriendshipsTable.receiver_id, users[0].id!)),
+                    and(eq(FriendshipsTable.sender_id, users[0].id!), eq(FriendshipsTable.receiver_id, currentUser!))
+                ),
+                columns: {
+                    id: true,
+                    friendship_status: true,
+                    receiver_id: true
+                }
+            })
+            return users.map(user => {
+                if (currentUser && user.id === currentUser) {
+                    return ({
+                        id: user.id,
+                        username: user.username,
+                        profilePicture: user.profile_picture,
+                        bio: user.bio,
+                        isFriend: {
+                            id: null,
+                            status: true,
+                            receiver: null
+                        }
+                    })
+                }
                 return ({
                     id: user.id,
                     username: user.username,
                     profilePicture: user.profile_picture,
                     bio: user.bio,
-                    isFriend: {
+                    isFriend: checkFriends ? {
+                        id: checkFriends.id,
+                        status: checkFriends.friendship_status,
+                        receiver: checkFriends.receiver_id
+                    } : {
                         id: null,
-                        status: true,
+                        status: null,
                         receiver: null
                     }
                 })
-            }
-            return ({
-                id: user.id,
-                username: user.username,
-                profilePicture: user.profile_picture,
-                bio: user.bio,
-                isFriend: checkFriends ? {
-                    id: checkFriends.id,
-                    status: checkFriends.friendship_status,
-                    receiver: checkFriends.receiver_id
-                } : {
-                    id: null,
-                    status: null,
-                    receiver: null
-                }
             })
-        })
+        }
+        catch {
+            throw new Error('Database error');
+        }
     }
 }
 

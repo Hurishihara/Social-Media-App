@@ -1,46 +1,54 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import PostService from '../services/post.service'
 import { upload } from "../../multer.config";
 import cloudinary, { extractPublicId } from "../db/cloudinary";
 import { io } from "../../server";
 import notificationService from "../services/notification.service";
 import postService from "../services/post.service";
+import CustomError from "../utils/error";
+import { StatusCodes } from "http-status-codes";
 
 
 class PostController {
-    async getPosts(req: Request, res: Response): Promise<void> {
+    async getPosts(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const currentUser = req.user?.userId
             if (!currentUser) {
-                res.status(401).json({ message: 'Unauthorized' });
+                next(new CustomError('Please login to access this resource', 'Unauthorized', StatusCodes.UNAUTHORIZED))
                 return
             }
             console.log('Current user', currentUser)
             const posts = await PostService.getPosts(currentUser);
             res.status(200).json(posts);
         }
-        catch (err) {
-            console.error('Error getting posts', err)
+        catch {
+            next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR))
+            return
         }
     }
 
-    async getPostsByProfile(req: Request, res: Response): Promise<void> {
+    async getPostsByProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { username } = req.params
-            console.log('GetPost', username)
+            const currentUser = req.user?.userId
+            if (!currentUser) {
+                next(new CustomError('Please login to access this resource', 'Unauthorized', StatusCodes.UNAUTHORIZED))
+                return
+            }
             const posts = await postService.getPostsByProfile(username)
             res.status(200).json(posts)
         }
-        catch (err) {
-            console.error('Error getting posts', err)
+        catch {
+            next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR))
+            return;
         }
     }
     
-    async createPost(req: Request, res: Response): Promise<void> {
+    async createPost(req: Request, res: Response, next: NextFunction): Promise<void> {
         upload.single('picture')(req, res, async (err) => {
             if (err) {
-                console.error('Upload error', err)
-                return res.status(500).json({ message: 'Error uploading image' });
+                next(new CustomError('Error uploading image', 'Bad Request', StatusCodes.BAD_REQUEST));
+                return;
             }
             try {
                 const { userId, content } = req.body;
@@ -49,26 +57,26 @@ class PostController {
                 io.emit('new-post', newPost[0]);
                 res.status(201).json({ message: 'Post created' });
             }
-            catch (err) {
-                console.error('Error creating post', err)
-                res.status(500).json({ message: 'Error creating post' });
+            catch {
+                next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
+                return;
             }
         })
     }
 
-    async editPost(req: Request, res: Response): Promise<void> {
+    async editPost(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { postId, content } = req.body;
             await PostService.updatePost(postId, content)
             res.status(200).json({ message: 'Post updated' })
         }
-        catch(err) {
-            console.error('Error updating post', err)
-            res.status(500).json({ message: 'Error updating post' })
+        catch {
+            next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
+            return;
         }
     }
 
-    async deletePost(req: Request, res: Response): Promise<void> {
+    async deletePost(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { postId } = req.body;
             const response = await PostService.deletePost(postId);
@@ -79,9 +87,9 @@ class PostController {
             )
             res.status(200).json({ message: 'Post deleted' });
         }
-        catch(err) {
-            console.error('Error deleting post', err)
-            res.status(500).json({ message: 'Error deleting post' });
+        catch {
+            next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
+            return;
         }
     }
 }

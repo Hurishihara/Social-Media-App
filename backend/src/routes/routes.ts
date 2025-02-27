@@ -8,6 +8,7 @@ import notificationRouter from './notification.route';
 import postRouter from './post.route';
 import userRouter from './user.route';
 import commentRouter from './comment.route';
+import errorHandler from '../middleware/error.handler';
 
 const router = express.Router();
 
@@ -20,5 +21,7 @@ router.use('/notification', notificationRouter);
 router.use('/post', postRouter);
 router.use('/user', userRouter);
 router.use('/comment', commentRouter);
+
+router.use(errorHandler);
 
 export default router;

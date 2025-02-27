@@ -1,16 +1,18 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { io } from "../../server";
 import { userSockets } from "../utils/socket";
 import FriendshipService from '../services/friendship.service';
 import notificationService from "../services/notification.service";
+import CustomError from "../utils/error";
+import { StatusCodes } from "http-status-codes";
 
 class FriendshipController {
-    async createFriendship(req: Request, res: Response): Promise<void> {
+    async createFriendship(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { receiverId } = req.body;
             const currentUser = req.user?.userId;
             if (currentUser === undefined) {
-                res.status(400).json({ message: 'Current user is not authenticated' });
+                next(new CustomError('Please login to access this resource', 'Unauthorized', StatusCodes.UNAUTHORIZED));
                 return;
             }
             const friendship = await FriendshipService.createFriendship('pending', currentUser, receiverId);
@@ -21,18 +23,18 @@ class FriendshipController {
                 io.to(authorSocketId).emit('friend-request-notification', notification[0])
             }
         }
-        catch(err) {
-            console.error('Error creating friendship', err)
-            res.status(500).json({ message: 'Error creating friendship' });
+        catch {
+            next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
+            return;
         }
     }
 
-    async acceptFriendship(req: Request, res: Response): Promise<void> {
+    async acceptFriendship(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { friendshipId, receiverId } = req.body;
             const currentUser = req.user?.userId;
             if (currentUser === undefined) {
-                res.status(400).json({ message: 'Current user is not authenticated' });
+                next(new CustomError('Please login to access this resource', 'Unauthorized', StatusCodes.UNAUTHORIZED));
                 return;
             }
             const friendship = await FriendshipService.acceptFriendship('accepted', friendshipId);
@@ -44,18 +46,18 @@ class FriendshipController {
             }
             
         }
-        catch (err) {
-            console.error('Error accepting friendship', err)
-            res.status(500).json({ message: 'Error accepting friendship' });
+        catch {
+            next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
+            return;
         }
     }
 
-    async cancelFriendship(req: Request, res: Response): Promise<void> {
+    async cancelFriendship(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { friendshipId, receiverId } = req.body;
             const currentUser = req.user?.userId;
             if (currentUser === undefined) {
-                res.status(400).json({ message: 'Current user is not authenticated' });
+                next(new CustomError('Please login to access this resource', 'Unauthorized', StatusCodes.UNAUTHORIZED));
                 return;
             }
             const friendship = await FriendshipService.cancelFriendship(friendshipId);
@@ -65,25 +67,25 @@ class FriendshipController {
                 io.to(authorSocketId).emit('cancel-friend-request', friendship.notification)
             }
         }
-        catch (err) {
-            console.error('Error declining friendship', err)
-            res.status(500).json({ message: 'Error declining friendship' });
+        catch {
+            next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
+            return;
         }
     }
-    async getFriends(req: Request, res: Response): Promise<void> {
+    async getFriends(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const currentUser = req.user?.userId;
             if (currentUser === undefined) {
-                res.status(400).json({ message: 'Current user is not authenticated' });
+                next(new CustomError('Please login to access this resource', 'Unauthorized', StatusCodes.UNAUTHORIZED));
                 return;
             }
             const { userId } = req.query;
             const friends = await FriendshipService.getFriends(Number(userId));
             res.status(200).json(friends);
         }
-        catch (err) {
-            console.error('Error getting friends', err)
-            res.status(500).json({ message: 'Error getting friends' });
+        catch {
+            next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
+            return;
         }
     }
 

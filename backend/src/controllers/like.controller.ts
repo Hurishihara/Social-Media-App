@@ -1,19 +1,21 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import LikeService from '../services/like.service';
 import likeService from "../services/like.service";
 import { io } from "../../server";
 import { userSockets } from "../utils/socket";
 import notificationService from "../services/notification.service";
+import CustomError from "../utils/error";
+import { StatusCodes } from "http-status-codes";
 
 class LikeController {
-    async LikePost(req: Request, res: Response): Promise<void> {
+    async LikePost(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const { author, postId } = req.body;
             const currentUser = req.user?.userId;
             if (!currentUser) {
-                res.status(401).json({ message: 'Unauthorized' });
+                next(new CustomError('Please login to access this resource', 'Unauthorized', StatusCodes.UNAUTHORIZED));
                 return;
-            }
+            };
             const response = await likeService.likePost(currentUser, postId);
             const authorSocketId = userSockets[author];
             
@@ -24,14 +26,14 @@ class LikeController {
             }
             else {
                 if (authorSocketId) {
-                    const notification = await notificationService.createNotification('like', author, currentUser, response.id)
-                    io.to(authorSocketId).emit('like-notification', notification[0])
-                }
-            }
+                    const notification = await notificationService.createNotification('like', author, currentUser, response.id);
+                    io.to(authorSocketId).emit('like-notification', notification[0]);
+                };
+            };
         }
-        catch(err) {
-            console.error('Error liking post', err)
-            res.status(500).json({ message: 'Error liking post' });
+        catch {
+            next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
+            return;
         }
     }
 }

@@ -4,7 +4,6 @@ import { Server } from 'socket.io';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import router from './src/routes/routes';
-import fileUpload from './src/routes/file.upload.route';
 import { handleUserConnection } from './src/utils/socket';
 import userController from './src/controllers/user.controller';
 
