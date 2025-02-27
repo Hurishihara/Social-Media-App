@@ -41,12 +41,20 @@ import { AiOutlineUserAdd } from "react-icons/ai";
 import { api } from './utils/axiosConfig'
 import { useNavigate, useParams } from 'react-router'
 import { Post, usePostStore } from '../store/post.store'
+import axios from 'axios'
+import { Toaster, toaster } from './src/components/ui/toaster'
+
+
+export interface ErrorResponse {
+    name: string,
+    message: string,
+}
 
 const ProfilePage = () => {
     const navigate = useNavigate()
     const { username } = useParams()
     const { setPosts } = usePostStore()
-    const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)  
+    const [ previewUrl, setPreviewUrl ] = React.useState<string | null>(null)  
     const [ isEditNameClick, setIsEditNameClick ] = React.useState<boolean>(false)
     const [ isEditBioClick, setIsEditBioClick ] = React.useState<boolean>(false)
     const { userName, userId, bio,  } = useUserStore() || { userName: '', userId: 0, bio: '' }
@@ -89,8 +97,15 @@ const ProfilePage = () => {
                 const response = await userApi.get(`/profile/${username}`)
                 setSearchedUserProfileData(response.data[0])
             }
-            catch (err) {
-                console.error(err)
+            catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                    const errorResponse = err.response?.data as ErrorResponse;
+                    toaster.create({
+                        title: errorResponse.name,
+                        description: errorResponse.message,
+                        type: 'error',
+                    })
+                }
             }
         }
         fetchUserProfile()
@@ -105,8 +120,15 @@ const ProfilePage = () => {
                 })
                 setFriends(response.data)
             }
-            catch (err) {
-                console.error(err)
+            catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                    const errorResponse = err.response?.data as ErrorResponse;
+                    toaster.create({
+                        title: errorResponse.name,
+                        description: errorResponse.message,
+                        type: 'error',
+                    })
+                }
             }
         }
         fetchUserFriends(searchedUserProfileData.id)
@@ -114,13 +136,28 @@ const ProfilePage = () => {
 
     useEffect(() => {
         const fetchUserPosts = async () => {
-            const userApi = api('user')
-            const response = await userApi.get(`/profile/${username}/posts`)
-            const updatedPosts = response.data.map((post: Post) => ({
-                ...post,
-                isLiked: post.likes.some((like: { likeId: number, userId: number, createdAt: string }) => like.userId === userId) ? true : false
-            }))
+            try {
+                const userApi = api('user')
+                const response = await userApi.get(`/profile/${username}/posts`)
+                const updatedPosts = response.data.map((post: Post) => ({
+                    ...post,
+                    isLiked: post.likes.some((like: { likeId: number, userId: number, createdAt: string }) => like.userId === userId) ? true : false
+                }))
             setPosts(updatedPosts)
+            }
+            catch(err: unknown) {
+                if (axios.isAxiosError(err)) {
+                    const errorResponse = err.response?.data as ErrorResponse;
+                    toaster.create({
+                        title: errorResponse.name,
+                        description: errorResponse.message,
+                        type: 'error',
+                    })
+                }
+                else {
+                    console.error(err)
+                }
+            }
         }
         fetchUserPosts()
     }, [searchedUserProfileData.id])
@@ -497,6 +534,7 @@ const ProfilePage = () => {
                     )}
                 </GridItem>
            </Grid>
+           <Toaster />
         </>
     )
 }

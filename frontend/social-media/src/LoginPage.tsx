@@ -14,6 +14,9 @@ import { PasswordInput } from "./src/components/ui/password-input"
 import { api } from "./utils/axiosConfig"
 import { useAuth } from "./AuthContext"
 import { useUserStore } from '../store/user.store'
+import axios from "axios"
+import { ErrorResponse } from "./ProfilePage"
+import { Toaster, toaster } from "./src/components/ui/toaster"
 
 
 const LoginPage = () => {
@@ -44,36 +47,47 @@ const LoginPage = () => {
       navigate('/home')
 
     }
-    catch (error) {
-      console.log(error)
+    catch (err: unknown) {
+      console.error('Error logging in', err)
+      if (axios.isAxiosError(err)) {
+        const errorResponse = err.response?.data as ErrorResponse
+        toaster.create({
+          title: errorResponse.name,
+          description: errorResponse.message,
+          type: 'error'
+        })
+      }
     }
   }
 
   return (
-    <Flex justifyContent='center' alignItems='center' h='90vh'>
-    <Box w='400px'>
-    <Card.Root p='1rem' gap='1.5rem'>
-      <Card.Body>
-      <Card.Title ml='3rem' fontSize='1.5rem'>Social Media App</Card.Title>
-      </Card.Body>
-      <Card.Body>
-      <Stack gap='1rem' direction='column'>
-        <form id='login-form' onSubmit={handleLogin} method='post'>
-          <Input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
-          <PasswordInput placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} />
-        </form>
-      </Stack>
-      <Button form='login-form' type='submit' mt='0.5rem'>Sign In</Button>
-      </Card.Body>
-      <Separator />
-      <Card.Footer justifyContent='flex-start' fontSize='1.1rem'>
-        <Text>
-          Don't have an account? <ChakraLink colorPalette='teal'><Link to='/register' >Sign Up</Link></ChakraLink>
-        </Text>
-      </Card.Footer>
-    </Card.Root>
-    </Box>
-    </Flex>
+    <>
+      <Flex justifyContent='center' alignItems='center' h='90vh'>
+        <Box w='400px'>
+          <Card.Root p='1rem' gap='1.5rem'>
+            <Card.Body>
+              <Card.Title ml='3rem' fontSize='1.5rem'>Social Media App</Card.Title>
+            </Card.Body>
+            <Card.Body>
+              <Stack gap='1rem' direction='column'>
+                <form id='login-form' onSubmit={handleLogin} method='post'>
+                  <Input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <PasswordInput placeholder='Password' value={password} onChange={(e) => setPassword(e.target.value)} />
+                </form>
+              </Stack>
+              <Button form='login-form' type='submit' mt='0.5rem'>Sign In</Button>
+            </Card.Body>
+            <Separator />
+            <Card.Footer justifyContent='flex-start' fontSize='1.1rem'>
+              <Text>
+                Don't have an account? <ChakraLink colorPalette='teal'><Link to='/register' >Sign Up</Link></ChakraLink>
+              </Text>
+            </Card.Footer>
+          </Card.Root>
+        </Box>
+      </Flex>
+      <Toaster />
+    </>
   )
 }
 

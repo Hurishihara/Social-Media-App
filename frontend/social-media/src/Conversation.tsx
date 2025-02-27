@@ -1,4 +1,4 @@
-import { Card, Grid, GridItem, List, Box, Flex, Stack, Button, Input, IconButton, Center, useBreakpointValue, Icon } from '@chakra-ui/react'
+import { Card, Grid, GridItem, List, Box, Flex, Stack, Button, Input, IconButton, Center, useBreakpointValue, Icon, } from '@chakra-ui/react'
 import { Avatar } from './src/components/ui/avatar'
 import { useNavigate, useParams } from 'react-router'
 import Navbar from './subpages/Navbar'
@@ -10,6 +10,9 @@ import { LuArrowLeft, LuSmile } from "react-icons/lu";
 import { LuSendHorizontal } from "react-icons/lu";
 import { formatDate } from './PostsList'
 import { useSocket } from './SocketContext'
+import axios from 'axios'
+import { ErrorResponse } from './ProfilePage'
+import { toaster, Toaster } from './src/components/ui/toaster'
 
 const Conversation = () => {
     
@@ -55,9 +58,21 @@ const Conversation = () => {
 
     useEffect(() => {
         const getConversation = async () => {
-            const conversationApi = api('conversation')
-            const response = await conversationApi.get('/get-conversation')
-            setConversations(response.data)
+            try {
+                const conversationApi = api('conversation')
+                const response = await conversationApi.get('/get-conversation')
+                setConversations(response.data)
+            }
+            catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                    const errorResponse = err.response?.data as ErrorResponse;
+                    toaster.create({
+                        title: errorResponse.name,
+                        description: errorResponse.message,
+                        type: 'error'
+                    })
+                }
+            }
         }
         getConversation()
     }, [])
@@ -65,9 +80,21 @@ const Conversation = () => {
     useEffect(() => {
         if (conversationId) {
             const getMessages = async () => {
-                const messageApi = api('message')
-                const response = await messageApi.get(`/get-messages/${conversationId}`)
-                setUserMessage(response.data)
+                try {
+                    const messageApi = api('message')
+                    const response = await messageApi.get(`/get-messages/${conversationId}`)
+                    setUserMessage(response.data)
+                }
+                catch (err: unknown) {
+                    if (axios.isAxiosError(err)) {
+                        const errorResponse = err.response?.data as ErrorResponse;
+                        toaster.create({
+                            title: errorResponse.name,
+                            description: errorResponse.message,
+                            type: 'error'
+                        })
+                    }
+                }
             }
             getMessages()
         }
@@ -92,8 +119,15 @@ const Conversation = () => {
         setUserMessage((prevMessage) => [...prevMessage, response.data])
         setMessage('')
        }
-       catch (err) {
-           console.error('Error sending message', err)
+       catch (err: unknown) {
+           if (axios.isAxiosError(err)) {
+                const errorResponse = err.response?.data as ErrorResponse;
+                toaster.create({
+                    title: errorResponse.name,
+                    description: errorResponse.message,
+                    type: 'error'
+                })
+           }
        }
     }
 
@@ -486,6 +520,7 @@ const Conversation = () => {
                 )
             )}
        </Grid>
+       <Toaster />
     </>
   )
 }

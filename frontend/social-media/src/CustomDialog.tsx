@@ -12,6 +12,9 @@ import { useState } from 'react'
 import { IoPersonSharp } from 'react-icons/io5'
 import { api } from './utils/axiosConfig'
 import { Post } from '../store/post.store'
+import axios from 'axios'
+import { ErrorResponse } from './ProfilePage'
+import { Toaster, toaster } from './src/components/ui/toaster'
 
 
 
@@ -26,13 +29,20 @@ const CustomDialog = ({ post, open, setOpen }: { post: Post, open: boolean, setO
         
         try {
             const postApi = api('post')
-            const response = await postApi.patch('/edit-post', {
+            await postApi.patch('/edit-post', {
                 postId: post.post.postId,
                 content: editedContent
             })
         }
-        catch (err) {
-            console.error(err)
+        catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                const errorResponse = err.response?.data as ErrorResponse;
+                toaster.create({
+                    title: errorResponse.name,
+                    description: errorResponse.message,
+                    type: 'error'
+                })
+            }
         }
     }
 
@@ -71,6 +81,7 @@ const CustomDialog = ({ post, open, setOpen }: { post: Post, open: boolean, setO
                 </DialogContent>
             </DialogRoot>
         </form>
+        <Toaster />
         </>
     )
 }

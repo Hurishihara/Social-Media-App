@@ -17,10 +17,20 @@ export const registerUserValidation = [
     .notEmpty().withMessage('Username cannot be empty')
     .matches(/^[a-zA-Z0-9_]*$/, 'g').withMessage('Username can only contain letters, numbers and underscores')
     .isLength({ min: 3, max: 20 }).withMessage('Username must be between 3 and 20 characters')
-    .custom(async (value,) => {
-        const checkExistingUserName = await db.select().from(UsersTable).where(eq(UsersTable.username, value))
-        if (checkExistingUserName.length > 0) {
-            throw new Error('Username already exists');
+    .custom(async (value) => {
+        try {
+            const checkExistingUserName = await db.select().from(UsersTable).where(eq(UsersTable.username, value))
+            if (checkExistingUserName.length > 0) {
+                throw new Error('Username already in use');
+            }
+        }
+        catch (err) {
+            if (err instanceof Error) {
+                if (err.message.includes('database')) {
+                    throw new Error('Database error')
+                }
+                throw err
+            }
         }
     }),
     body('email')
@@ -29,9 +39,19 @@ export const registerUserValidation = [
     .notEmpty().withMessage('Email cannot be empty')
     .isEmail().withMessage('Invalid email format')
     .custom(async (value) => {
-        const checkExistingUserEmail = await db.select().from(UsersTable).where(eq(UsersTable.email, value))
-        if (checkExistingUserEmail.length > 0) {
-            throw new Error('Email already exists')
+        try {
+            const checkExistingUserEmail = await db.select().from(UsersTable).where(eq(UsersTable.email, value))
+            if (checkExistingUserEmail.length > 0) {
+                throw new Error('Email already in use')
+            }
+        }
+        catch (err: unknown) {
+            if (err instanceof Error) {
+                if (err.message.includes('database')) {
+                    throw new Error('Database error')
+                }
+                throw err
+            }
         }
     }),
     body('password')
@@ -50,12 +70,17 @@ export const loginUserValidation = [
         try {
             const checkExistingUserEmail = await db.select().from(UsersTable).where(eq(UsersTable.email, value))
             if (checkExistingUserEmail.length === 0) {
-                throw new CustomError('Email does not exist', 'Not Found', StatusCodes.NOT_FOUND)
+                throw new Error('The email or password you entered is incorrect')
             }
         }
-        catch (err: any) {
-            //throw new Error(err)
-            throw new CustomError('Database error', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR)
+        catch (err: unknown) {
+            console.log('Error response', err)
+            if (err instanceof Error) {
+                if (err.message.includes('database')) {
+                    throw new Error('Database error')
+                }
+                throw err
+            }
         }
     }),
     body('password')

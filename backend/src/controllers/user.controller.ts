@@ -12,10 +12,12 @@ class UserController {
         const errors = validationResult(req);
         const firstError = errors.array({ onlyFirstError: true })[0];
         if (!errors.isEmpty()) {
-            if (firstError) {
-                next(new CustomError(firstError.msg, 'Bad Request', StatusCodes.BAD_REQUEST));
+            if (firstError.msg === 'Database error') {
+                next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
                 return;
             }
+            next(new CustomError(firstError.msg, 'Bad Request', StatusCodes.BAD_REQUEST));
+            return;
         }
         const { username, email, password } = req.body;
         try {
@@ -51,11 +53,12 @@ class UserController {
                 profilePicture: user.profile_picture});
         }
         catch (error) {
+            console.error('Error logging in user', error);
             if (error === 'Database error') {
                 next(new CustomError('Something went wrong', 'Internal Server Error', StatusCodes.INTERNAL_SERVER_ERROR));
                 return;
             }
-            next(new CustomError('Incorrect password', 'Bad Request', StatusCodes.BAD_REQUEST));
+            next(new CustomError('The email or password you entered is incorrect', 'Bad Request', StatusCodes.BAD_REQUEST));
             return;
         }
     }

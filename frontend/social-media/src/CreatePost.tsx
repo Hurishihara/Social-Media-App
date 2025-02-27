@@ -17,6 +17,10 @@ import { IoPersonSharp } from 'react-icons/io5'
 import { FaRegImages } from "react-icons/fa";
 import { api } from './utils/axiosConfig'
 import { useUserStore } from '../store/user.store'
+import { useNavigate } from 'react-router'
+import axios from 'axios'
+import { ErrorResponse } from './ProfilePage'
+import { Toaster, toaster } from './src/components/ui/toaster'
 
 
 interface CreatePostProps {
@@ -26,6 +30,7 @@ interface CreatePostProps {
 
 const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
     
+    const navigate = useNavigate()
     const { userName, userId, profilePicture } = useUserStore()
     const [content, setContent] = useState<string>('')
     const postButtonSize = useBreakpointValue({
@@ -55,22 +60,34 @@ const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
     const handleCreatePost = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        if (fileUpload.acceptedFiles.length > 0) {
-            const file = fileUpload.acceptedFiles[0]
-        
-        const postApi = api('post')
-        const response = await postApi.post('/create-post', {
-            userId,
-            content,
-            picture: file
-        }, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            },
-        })
-        alert('Post created')
+        try {
+            if (fileUpload.acceptedFiles.length > 0) {
+                const file = fileUpload.acceptedFiles[0]
+            
+            const postApi = api('post')
+            await postApi.post('/create-post', {
+                userId,
+                content,
+                picture: file
+            }, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+            })
+            navigate('/')
+        }
+        }
+        catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                const errorResponse = err.response?.data as ErrorResponse;
+                toaster.create({
+                    title: errorResponse.name,
+                    description: errorResponse.message,
+                    type: 'error'
+                })
+            }
+        }
     }
-}
    
     
     return (
@@ -141,6 +158,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ createPostButtonSize }) => {
                     </Stack>
                 </Card.Body>
             </Card.Root>
+            <Toaster />
         </>
     )
 }

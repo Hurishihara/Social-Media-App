@@ -9,10 +9,12 @@ import { api } from './utils/axiosConfig';
 import { Post, usePostStore } from '../store/post.store';
 import { useSocket } from './SocketContext';
 import React from 'react';
+import axios from 'axios';
+import { ErrorResponse } from './ProfilePage';
+import { Toaster, toaster } from './src/components/ui/toaster';
 
 
 const HomePage = () => {
-    const [ onlineFriends, setOnlineFriends ] = useState<Record<string, boolean>>({})
     const [ friends, setFriends ] = useState<Array<{
         id: number,
         name: string,
@@ -69,8 +71,15 @@ const HomePage = () => {
                     isLiked: post.likes.some((like: { userId: number }) => like.userId === userId)
                 }));
                 setPosts(updatedPosts);
-            } catch (err) {
-                console.error(err);
+            } catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                    const errorResponse = err.response?.data as ErrorResponse;
+                    toaster.create({
+                        title: errorResponse.name,
+                        description: errorResponse.message,
+                        type: 'error'
+                    })
+                }
             }
         };
         const fetchFriends = async () => {
@@ -90,8 +99,15 @@ const HomePage = () => {
                 }))
 
                 setFriends(updatedFriends);
-            } catch (err) {
-                console.error(err);
+            } catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                    const errorResponse = err.response?.data as ErrorResponse;
+                    toaster.create({
+                        title: errorResponse.name,
+                        description: errorResponse.message,
+                        type: 'error'
+                    })
+                }
             }
         };
 
@@ -152,6 +168,7 @@ const HomePage = () => {
                     <PostsList mt='1rem' />
                 </GridItem>
             </Grid>
+            <Toaster />
         </>
     )
 }

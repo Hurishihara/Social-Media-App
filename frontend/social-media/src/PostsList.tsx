@@ -19,6 +19,10 @@ import { DialogBody, DialogCloseTrigger, DialogContent, DialogHeader, DialogRoot
 import Picker from '@emoji-mart/react'
 import { LuSendHorizontal, LuSmile } from 'react-icons/lu'
 import { useSocket } from './SocketContext';
+import axios from 'axios';
+import { Toaster, toaster } from './src/components/ui/toaster';
+import { ErrorResponse } from './ProfilePage';
+import { useNavigate } from 'react-router';
 
 
 type PostListProp = {
@@ -41,6 +45,7 @@ export const formatDate = (dateString: string): string => {
 
 const PostsList: React.FC<PostListProp> = ({ mt }) => {
     
+    const navigate = useNavigate()
     const { posts, setPosts } = usePostStore()
     const { userId, userName, profilePicture } = useUserStore()
     const socket = useSocket()
@@ -85,22 +90,36 @@ const PostsList: React.FC<PostListProp> = ({ mt }) => {
                 await likeApi.post('/like-post', { postId: likedPost.post.postId, userId: userId, author: likedPost.authorId })
             }
         }
-        catch(err) {
-            console.error(err)
+        catch(err: unknown) {
+            if (axios.isAxiosError(err)) {
+                const errorResponse = err.response?.data as ErrorResponse
+                toaster.create({
+                    title: errorResponse.name,
+                    description: errorResponse.message,
+                    type: 'error'
+                })
+            }
         }
     }
 
     const handleComment = async (postId: number, authorId: number): Promise<void> => {
         try {
             const commentApi = api('comment')
-            const response = await commentApi.post('/create-comment', {
+            await commentApi.post('/create-comment', {
                 content: userCommment,
                 postId: postId,
                 authorId: authorId
             })
         }
-        catch(err) {
-            console.error(err)
+        catch(err: unknown) {
+            if (axios.isAxiosError(err)) {
+                const errorResponse = err.response?.data as ErrorResponse
+                toaster.create({
+                    title: errorResponse.name,
+                    description: errorResponse.message,
+                    type: 'error'
+                })
+            }
         }
     }
     
@@ -115,10 +134,17 @@ const PostsList: React.FC<PostListProp> = ({ mt }) => {
             await postApi.delete(`/delete-post`, {
                 data: { postId }
             })
-            alert('Post deleted')
+            navigate('/')
         }
-        catch(err) {
-            console.error(err)
+        catch(err: unknown) {
+            if (axios.isAxiosError(err)) {
+                const errorResponse = err.response?.data as ErrorResponse
+                toaster.create({
+                    title: errorResponse.name,
+                    description: errorResponse.message,
+                    type: 'error'
+                })
+            }
         }
     }
 
@@ -302,6 +328,7 @@ const PostsList: React.FC<PostListProp> = ({ mt }) => {
                 ))}
             </List.Root>
             {selectedPost && <CustomDialog post={selectedPost} open={open} setOpen={(e: any) => setOpen(e.open)} />}
+            <Toaster />
         </>
     )
 }
