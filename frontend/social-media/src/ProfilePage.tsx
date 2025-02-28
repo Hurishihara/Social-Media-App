@@ -274,7 +274,8 @@ const ProfilePage = () => {
         lg: true,
         tablet: false,
         desktop: false,
-        wide: false
+        wide: false,
+        wideDesktop: false,
     });
 
     const gridItemColStart = useBreakpointValue({
